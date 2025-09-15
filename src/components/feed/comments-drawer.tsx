@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Send, Smile, Heart, MessageCircle, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Send,
+  Smile,
+  Heart,
+  MessageCircle,
+  MoreHorizontal,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -49,24 +57,24 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [isLiked, setIsLiked] = useState(comment.isLoved);
-  const [likesCount, setLikesCount] = useState(comment.likes || comment.lovesCount || 0);
+  const [likesCount, setLikesCount] = useState(
+    comment.likes || comment.lovesCount || 0
+  );
 
   const [toggleCommentLike] = useToggleCommentLikeMutation();
   const [addComment] = useAddCommentMutation();
 
-  const {
-    data: repliesData,
-    isLoading: repliesLoading,
-  } = useGetCommentRepliesQuery(
-    { commentId: comment._id },
-    { skip: !showReplies || isReply }
-  );
+  const { data: repliesData, isLoading: repliesLoading } =
+    useGetCommentRepliesQuery(
+      { commentId: comment._id },
+      { skip: !showReplies || isReply }
+    );
 
   const handleLikeClick = async () => {
     try {
       const result = await toggleCommentLike(comment._id).unwrap();
       setIsLiked(result.liked);
-      setLikesCount(prev => result.liked ? prev + 1 : prev - 1);
+      setLikesCount((prev) => (result.liked ? prev + 1 : prev - 1));
     } catch (error) {
       console.error("Failed to toggle comment like:", error);
     }
@@ -100,7 +108,7 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
             {comment.owner.fullName?.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        
+
         <div className="flex-1 space-y-2">
           <div className="bg-muted rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
@@ -117,10 +125,12 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
                   })}
                 </span>
                 {comment.isEdited && (
-                  <span className="text-xs text-muted-foreground">(edited)</span>
+                  <span className="text-xs text-muted-foreground">
+                    (edited)
+                  </span>
                 )}
               </div>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -133,12 +143,12 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            
+
             <p className="text-sm text-foreground whitespace-pre-wrap">
               {comment.content}
             </p>
           </div>
-          
+
           <div className="flex items-center space-x-4 px-3">
             <Button
               variant="ghost"
@@ -152,14 +162,11 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
               )}
             >
               <Heart
-                className={cn(
-                  "h-3 w-3 mr-1",
-                  isLiked && "fill-current"
-                )}
+                className={cn("h-3 w-3 mr-1", isLiked && "fill-current")}
               />
               {likesCount > 0 && likesCount}
             </Button>
-            
+
             {!isReply && (
               <Button
                 variant="ghost"
@@ -171,8 +178,8 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
                 Reply
               </Button>
             )}
-            
-            {!isReply && comment.replyCount > 0 && (
+
+            {!isReply && comment?.replyCount && comment.replyCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -184,11 +191,12 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
                 ) : (
                   <ChevronDown className="h-3 w-3 mr-1" />
                 )}
-                {comment.replyCount} {comment.replyCount === 1 ? 'reply' : 'replies'}
+                {comment.replyCount}{" "}
+                {comment.replyCount === 1 ? "reply" : "replies"}
               </Button>
             )}
           </div>
-          
+
           {/* Reply input */}
           {isReplying && (
             <div className="space-y-2 px-3">
@@ -222,7 +230,7 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
           )}
         </div>
       </div>
-      
+
       {/* Replies */}
       {showReplies && !isReply && (
         <div className="space-y-3">
@@ -289,7 +297,7 @@ export function CommentsDrawer({
 
   const loadMoreComments = () => {
     if (comments?.totalPages && page < comments.totalPages) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
     }
   };
 
@@ -298,7 +306,7 @@ export function CommentsDrawer({
       <DrawerContent className="h-[85vh]">
         <DrawerHeader>
           <DrawerTitle>
-            Comments {comments?.totalDocs ? `(${comments.totalDocs})` : ''}
+            Comments {comments?.totalDocs ? `(${comments.totalDocs})` : ""}
           </DrawerTitle>
         </DrawerHeader>
 
@@ -327,7 +335,7 @@ export function CommentsDrawer({
                     postId={postId}
                   />
                 ))}
-                
+
                 {/* Load more comments */}
                 {comments?.totalPages && page < comments.totalPages && (
                   <div className="text-center py-4">
@@ -336,11 +344,12 @@ export function CommentsDrawer({
                       onClick={loadMoreComments}
                       className="w-full"
                     >
-                      Load more comments ({comments.totalDocs - (page * limit)} remaining)
+                      Load more comments ({comments.totalDocs - page * limit}{" "}
+                      remaining)
                     </Button>
                   </div>
                 )}
-                
+
                 {comments?.docs?.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />

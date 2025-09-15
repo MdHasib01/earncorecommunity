@@ -1,34 +1,43 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Post, Comment, FeedResponse, User } from "./types";
-import { getCookie } from "@/utils/cookies";
 
 export const feedApi = createApi({
   reducerPath: "feedApi",
-  baseQuery: fetchBaseQuery({ 
+  baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL,
+    credentials: "include",
     prepareHeaders: (headers) => {
-      const token = getCookie("accessToken");
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
       headers.set("content-type", "application/json");
       return headers;
     },
   }),
   tagTypes: ["Post", "Comment", "User", "Bookmark", "Like", "Follow"],
   endpoints: (builder) => ({
-    getFeed: builder.query<FeedResponse, { 
-      cursor?: string; 
-      limit?: number; 
-      community?: string;
-      platform?: string;
-      sortBy?: string;
-      sortType?: string;
-      search?: string;
-      minQualityScore?: number;
-      authentic?: boolean;
-    }>({
-      query: ({ cursor = "1", limit = 10, community, platform, sortBy, sortType, search, minQualityScore, authentic }) => ({
+    getFeed: builder.query<
+      FeedResponse,
+      {
+        cursor?: string;
+        limit?: number;
+        community?: string;
+        platform?: string;
+        sortBy?: string;
+        sortType?: string;
+        search?: string;
+        minQualityScore?: number;
+        authentic?: boolean;
+      }
+    >({
+      query: ({
+        cursor = "1",
+        limit = 10,
+        community,
+        platform,
+        sortBy,
+        sortType,
+        search,
+        minQualityScore,
+        authentic,
+      }) => ({
         url: "posts",
         params: {
           page: cursor,
@@ -47,7 +56,10 @@ export const feedApi = createApi({
       },
       providesTags: (result) => [
         "Post",
-        ...(result?.docs || []).map(({ _id }) => ({ type: "Post" as const, id: _id })),
+        ...(result?.docs || []).map(({ _id }) => ({
+          type: "Post" as const,
+          id: _id,
+        })),
       ],
     }),
 
@@ -57,31 +69,52 @@ export const feedApi = createApi({
       providesTags: (result, error, postId) => [{ type: "Post", id: postId }],
     }),
 
-    getPostComments: builder.query<{
-      docs: Comment[];
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { postId: string; page?: number; limit?: number; sortBy?: string; sortType?: string }>({
-      query: ({ postId, page = 1, limit = 10, sortBy = "createdAt", sortType = "desc" }) => ({
+    getPostComments: builder.query<
+      {
+        docs: Comment[];
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      {
+        postId: string;
+        page?: number;
+        limit?: number;
+        sortBy?: string;
+        sortType?: string;
+      }
+    >({
+      query: ({
+        postId,
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortType = "desc",
+      }) => ({
         url: `comments/post/${postId}`,
         params: { page, limit, sortBy, sortType },
       }),
       transformResponse: (response: any) => response.data,
       providesTags: (result, error, { postId }) => [
         { type: "Comment", id: `POST_${postId}` },
-        ...(result?.docs || []).map(({ _id }) => ({ type: "Comment" as const, id: _id })),
+        ...(result?.docs || []).map(({ _id }) => ({
+          type: "Comment" as const,
+          id: _id,
+        })),
       ],
     }),
 
-    getCommentReplies: builder.query<{
-      docs: Comment[];
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { commentId: string; page?: number; limit?: number }>({
+    getCommentReplies: builder.query<
+      {
+        docs: Comment[];
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      { commentId: string; page?: number; limit?: number }
+    >({
       query: ({ commentId, page = 1, limit = 10 }) => ({
         url: `comments/${commentId}/replies`,
         params: { page, limit },
@@ -89,14 +122,19 @@ export const feedApi = createApi({
       transformResponse: (response: any) => response.data,
       providesTags: (result, error, { commentId }) => [
         { type: "Comment", id: `REPLIES_${commentId}` },
-        ...(result?.docs || []).map(({ _id }) => ({ type: "Comment" as const, id: _id })),
+        ...(result?.docs || []).map(({ _id }) => ({
+          type: "Comment" as const,
+          id: _id,
+        })),
       ],
     }),
 
     getUserProfile: builder.query<User, string>({
       query: (username) => `users/c/${username}`,
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, username) => [{ type: "User", id: username }],
+      providesTags: (result, error, username) => [
+        { type: "User", id: username },
+      ],
     }),
 
     // Like endpoints
@@ -109,6 +147,7 @@ export const feedApi = createApi({
       invalidatesTags: (result, error, postId) => [
         { type: "Post", id: postId },
         { type: "Like", id: `POST_${postId}` },
+        "Like",
       ],
     }),
 
@@ -124,38 +163,46 @@ export const feedApi = createApi({
       ],
     }),
 
-    getPostLikes: builder.query<{
-      docs: Array<{ _id: string; user: User; createdAt: string }>;
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { postId: string; page?: number; limit?: number }>({
+    getPostLikes: builder.query<
+      {
+        docs: Array<{ _id: string; user: User; createdAt: string }>;
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      { postId: string; page?: number; limit?: number }
+    >({
       query: ({ postId, page = 1, limit = 20 }) => ({
         url: `likes/post/${postId}/users`,
         params: { page, limit },
       }),
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, { postId }) => [{ type: "Like", id: `POST_${postId}` }],
+      providesTags: (result, error, { postId }) => [
+        { type: "Like", id: `POST_${postId}` },
+      ],
     }),
 
-    getUserLikedPosts: builder.query<{
-      docs: Array<{ _id: string; post: Post; createdAt: string }>;
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { page?: number; limit?: number }>({
+    getUserLikedPosts: builder.query<
+      Array<{ _id: string; post: Post; createdAt: string }>,
+      { page?: number; limit?: number }
+    >({
       query: ({ page = 1, limit = 10 }) => ({
         url: "likes/user/posts",
         params: { page, limit },
       }),
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: any) => {
+        console.log(response.data, "response");
+        return response.data;
+      },
       providesTags: ["Like"],
     }),
 
     // Bookmark endpoints
-    toggleBookmark: builder.mutation<{ bookmarked: boolean }, { postId: string; collection?: string }>({
+    toggleBookmark: builder.mutation<
+      { bookmarked: boolean },
+      { postId: string; collection?: string }
+    >({
       query: ({ postId, collection = "default" }) => ({
         url: `bookmarks/post/${postId}`,
         method: "POST",
@@ -169,42 +216,62 @@ export const feedApi = createApi({
       ],
     }),
 
-    getUserBookmarks: builder.query<{
-      docs: Array<{ _id: string; collection: string; post: Post; createdAt: string }>;
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { page?: number; limit?: number; collection?: string }>({
+    getUserBookmarks: builder.query<
+      {
+        docs: Array<{
+          _id: string;
+          collection: string;
+          post: Post;
+          createdAt: string;
+        }>;
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      { page?: number; limit?: number; collection?: string }
+    >({
       query: ({ page = 1, limit = 10, collection }) => ({
         url: "bookmarks",
-        params: { 
-          page, 
+        params: {
+          page,
           limit,
           ...(collection && { collection }),
         },
       }),
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: any) => {
+        console.log(response);
+        return response;
+      },
+
       providesTags: ["Bookmark"],
     }),
 
-    getBookmarkCollections: builder.query<Array<{
-      collection: string;
-      count: number;
-      lastUpdated: string;
-    }>, void>({
+    getBookmarkCollections: builder.query<
+      Array<{
+        collection: string;
+        count: number;
+        lastUpdated: string;
+      }>,
+      void
+    >({
       query: () => "bookmarks/collections",
       transformResponse: (response: any) => response.data,
       providesTags: ["Bookmark"],
     }),
 
-    checkBookmarkStatus: builder.query<{
-      isBookmarked: boolean;
-      collections: string[];
-    }, string>({
+    checkBookmarkStatus: builder.query<
+      {
+        isBookmarked: boolean;
+        collections: string[];
+      },
+      string
+    >({
       query: (postId) => `bookmarks/post/${postId}/status`,
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, postId) => [{ type: "Bookmark", id: `POST_${postId}` }],
+      providesTags: (result, error, postId) => [
+        { type: "Bookmark", id: `POST_${postId}` },
+      ],
     }),
 
     // Follow endpoints
@@ -221,57 +288,77 @@ export const feedApi = createApi({
       ],
     }),
 
-    getUserFollowers: builder.query<{
-      docs: Array<{ _id: string; follower: User; createdAt: string }>;
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { userId: string; page?: number; limit?: number }>({
+    getUserFollowers: builder.query<
+      {
+        docs: Array<{ _id: string; follower: User; createdAt: string }>;
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      { userId: string; page?: number; limit?: number }
+    >({
       query: ({ userId, page = 1, limit = 20 }) => ({
         url: `follows/user/${userId}/followers`,
         params: { page, limit },
       }),
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, { userId }) => [{ type: "Follow", id: `FOLLOWERS_${userId}` }],
+      providesTags: (result, error, { userId }) => [
+        { type: "Follow", id: `FOLLOWERS_${userId}` },
+      ],
     }),
 
-    getUserFollowing: builder.query<{
-      docs: Array<{ _id: string; following: User; createdAt: string }>;
-      totalDocs: number;
-      limit: number;
-      page: number;
-      totalPages: number;
-    }, { userId: string; page?: number; limit?: number }>({
+    getUserFollowing: builder.query<
+      {
+        docs: Array<{ _id: string; following: User; createdAt: string }>;
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      { userId: string; page?: number; limit?: number }
+    >({
       query: ({ userId, page = 1, limit = 20 }) => ({
         url: `follows/user/${userId}/following`,
         params: { page, limit },
       }),
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, { userId }) => [{ type: "Follow", id: `FOLLOWING_${userId}` }],
+      providesTags: (result, error, { userId }) => [
+        { type: "Follow", id: `FOLLOWING_${userId}` },
+      ],
     }),
 
-    getFollowStats: builder.query<{
-      followers: number;
-      following: number;
-    }, string>({
+    getFollowStats: builder.query<
+      {
+        followers: number;
+        following: number;
+      },
+      string
+    >({
       query: (userId) => `follows/user/${userId}/stats`,
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, userId) => [{ type: "Follow", id: `STATS_${userId}` }],
+      providesTags: (result, error, userId) => [
+        { type: "Follow", id: `STATS_${userId}` },
+      ],
     }),
 
     checkFollowStatus: builder.query<{ isFollowing: boolean }, string>({
       query: (userId) => `follows/user/${userId}/status`,
       transformResponse: (response: any) => response.data,
-      providesTags: (result, error, userId) => [{ type: "Follow", id: `STATUS_${userId}` }],
+      providesTags: (result, error, userId) => [
+        { type: "Follow", id: `STATUS_${userId}` },
+      ],
     }),
 
     // Comment creation
-    addComment: builder.mutation<Comment, { 
-      content: string; 
-      postId: string; 
-      parentCommentId?: string;
-    }>({
+    addComment: builder.mutation<
+      Comment,
+      {
+        content: string;
+        postId: string;
+        parentCommentId?: string;
+      }
+    >({
       query: ({ content, postId, parentCommentId }) => ({
         url: "comments",
         method: "POST",
@@ -281,12 +368,17 @@ export const feedApi = createApi({
       invalidatesTags: (result, error, { postId, parentCommentId }) => [
         { type: "Comment", id: `POST_${postId}` },
         { type: "Post", id: postId },
-        ...(parentCommentId ? [{ type: "Comment" as const, id: `REPLIES_${parentCommentId}` }] : []),
+        ...(parentCommentId
+          ? [{ type: "Comment" as const, id: `REPLIES_${parentCommentId}` }]
+          : []),
       ],
     }),
 
     // Update comment
-    updateComment: builder.mutation<Comment, { commentId: string; content: string }>({
+    updateComment: builder.mutation<
+      Comment,
+      { commentId: string; content: string }
+    >({
       query: ({ commentId, content }) => ({
         url: `comments/${commentId}`,
         method: "PATCH",
@@ -309,6 +401,45 @@ export const feedApi = createApi({
         "Comment",
         "Post",
       ],
+    }),
+
+    // User posts
+    getUserPosts: builder.query<
+      {
+        docs: Post[];
+        totalDocs: number;
+        limit: number;
+        page: number;
+        totalPages: number;
+      },
+      { userId: string; page?: number; limit?: number }
+    >({
+      query: ({ userId, page = 1, limit = 10 }) => ({
+        url: `posts/user/${userId}`,
+        params: { page, limit },
+      }),
+      transformResponse: (response: any) => response.data,
+      providesTags: (result, error, { userId }) => [
+        { type: "Post", id: `USER_${userId}` },
+        ...(result?.docs || []).map(({ _id }) => ({
+          type: "Post" as const,
+          id: _id,
+        })),
+      ],
+    }),
+
+    // Update profile
+    updateProfile: builder.mutation<
+      User,
+      { fullName: string; bio: string; avatar: string }
+    >({
+      query: (profileData) => ({
+        url: "users/profile",
+        method: "PATCH",
+        body: profileData,
+      }),
+      transformResponse: (response: any) => response.data,
+      invalidatesTags: ["User"],
     }),
   }),
 });
@@ -335,4 +466,6 @@ export const {
   useAddCommentMutation,
   useUpdateCommentMutation,
   useDeleteCommentMutation,
+  useGetUserPostsQuery,
+  useUpdateProfileMutation,
 } = feedApi;

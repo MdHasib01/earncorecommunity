@@ -17,9 +17,9 @@ import {
   useGetCurrentUserQuery,
   useLoginMutation,
 } from "@/store/features/authentication/authApi";
-import { getCookie } from "@/utils/cookies";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -29,14 +29,13 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const auth = useSelector((state: any) => state.auth);
-  console.log("auth", auth);
   const {
     data: currentUser,
     error: currentUserError,
     isLoading: isLoadingUser,
     refetch: refetchUser,
   } = useGetCurrentUserQuery(undefined, {
-    skip: !getCookie("accessToken") || auth.isAuthenticated,
+    skip: auth.isAuthenticated,
   });
   const [login, { isLoading: isLoggingIn, error: loginError }] =
     useLoginMutation();
@@ -45,10 +44,13 @@ export function LoginForm({
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await login({ email, password });
+      await login({ email, password }).unwrap();
+      // await refetchUser();
       router.push("/dashboard/feed");
+      toast.success("Login successful");
     } catch (error) {
       console.error("Login failed:", error);
+      toast.error("Login failed");
     }
   };
 

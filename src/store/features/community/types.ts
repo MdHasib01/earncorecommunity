@@ -2,6 +2,7 @@ export interface CommunityTypes {
   _id: string;
   name: string;
   icon: string;
+  lastUpdatedAt: string;
   description: string;
   category: string;
   scrapingPlatforms: {

@@ -3,8 +3,8 @@
 
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useGetCurrentUserQuery } from "../store/features/authentication/authApi"; // adjust import path
-import { setUser, clearUser } from "../store/features/authentication/authSlice"; // we'll create this
+import { useGetCurrentUserQuery } from "../store/features/authentication/authApi";
+import { setUser, clearUser } from "../store/features/authentication/authSlice";
 
 interface AuthProviderProps {
   children: React.ReactNode;

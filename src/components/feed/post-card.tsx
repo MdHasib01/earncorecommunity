@@ -26,6 +26,7 @@ import {
   useToggleFollowMutation,
   useCheckFollowStatusQuery,
   useCheckBookmarkStatusQuery,
+  useGetUserLikedPostsQuery,
 } from "@/store/features/feed/feedApi";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
@@ -47,14 +48,19 @@ export function PostCard({ post }: PostCardProps) {
   const [isCommentsDrawerOpen, setIsCommentsDrawerOpen] = useState(false);
   const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(post.isLoved);
-  const [likesCount, setLikesCount] = useState(post.engagementMetrics?.likes || 0);
-  
+  const [likesCount, setLikesCount] = useState(
+    post.engagementMetrics?.likes || 0
+  );
+
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const isOwnPost = currentUser?._id === post.owner._id;
 
-  const [toggleLove, { isLoading: isLikeLoading }] = useTogglePostLikeMutation();
-  const [toggleBookmark, { isLoading: isBookmarkLoading }] = useToggleBookmarkMutation();
-  const [toggleFollow, { isLoading: isFollowLoading }] = useToggleFollowMutation();
+  const [toggleLove, { isLoading: isLikeLoading }] =
+    useTogglePostLikeMutation();
+  const [toggleBookmark, { isLoading: isBookmarkLoading }] =
+    useToggleBookmarkMutation();
+  const [toggleFollow, { isLoading: isFollowLoading }] =
+    useToggleFollowMutation();
 
   // Check follow status
   const { data: followStatus } = useCheckFollowStatusQuery(post.owner._id, {
@@ -64,13 +70,32 @@ export function PostCard({ post }: PostCardProps) {
   // Check bookmark status
   const { data: bookmarkStatus } = useCheckBookmarkStatusQuery(post._id);
 
+  // Liked posts list for current user
+  const { data: likedPosts } = useGetUserLikedPostsQuery(
+    { page: 1, limit: 100 },
+    {
+      skip: !currentUser,
+    }
+  );
+
+  const isPostInLikedList = !!likedPosts?.some(
+    (lp) => lp.post?._id === post._id
+  );
+
+  // Derive isLiked from server liked list when available
+  if (isPostInLikedList !== undefined && isPostInLikedList !== isLiked) {
+    // keep local UI in sync with server knowledge
+    // avoid state churn if mutation is in-flight; but here like toggle returns result to update too
+    setIsLiked(isPostInLikedList);
+  }
+
   const handleLoveClick = async () => {
     if (isLikeLoading) return;
-    
+
     try {
       const result = await toggleLove(post._id).unwrap();
       setIsLiked(result.liked);
-      setLikesCount(prev => result.liked ? prev + 1 : prev - 1);
+      setLikesCount((prev) => (result.liked ? prev + 1 : prev - 1));
     } catch (error) {
       console.error("Failed to toggle like:", error);
     }
@@ -78,7 +103,7 @@ export function PostCard({ post }: PostCardProps) {
 
   const handleBookmarkClick = async () => {
     if (isBookmarkLoading) return;
-    
+
     try {
       await toggleBookmark({ postId: post._id }).unwrap();
     } catch (error) {
@@ -88,7 +113,7 @@ export function PostCard({ post }: PostCardProps) {
 
   const handleFollowClick = async () => {
     if (isFollowLoading || isOwnPost) return;
-    
+
     try {
       await toggleFollow(post.owner._id).unwrap();
     } catch (error) {
@@ -122,7 +147,9 @@ export function PostCard({ post }: PostCardProps) {
     } else {
       // Fallback to clipboard
       try {
-        await navigator.clipboard.writeText(post.sourceUrl || window.location.href);
+        await navigator.clipboard.writeText(
+          post.sourceUrl || window.location.href
+        );
         // You could show a toast here
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
@@ -158,7 +185,7 @@ export function PostCard({ post }: PostCardProps) {
         <div className="flex items-center justify-between p-4 pb-4">
           <button
             onClick={handleProfileClick}
-            className="flex items-center space-x-3 hover:bg-accent/50 rounded-lg p-2 -m-2 transition-colors duration-200"
+            className="flex items-center space-x-3 hover:bg-accent/50 rounded-lg p-2 -m-2 transition-colors duration-200 cursor-pointer"
           >
             <Avatar className="h-10 w-10">
               <AvatarImage
@@ -166,7 +193,9 @@ export function PostCard({ post }: PostCardProps) {
                 src={post?.owner?.avatar}
                 alt={post?.owner?.fullName}
               />
-              <AvatarFallback>{post?.owner?.fullName?.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {post?.owner?.fullName?.charAt(0)}
+              </AvatarFallback>
             </Avatar>
             <div className="text-left">
               <div className="flex items-center space-x-2">
@@ -176,26 +205,17 @@ export function PostCard({ post }: PostCardProps) {
                 {post?.owner?.isVerified && (
                   <BadgeCheck className="h-4 w-4 text-primary" />
                 )}
-                {post?.community && (
-                  <Badge variant="secondary" className="text-xs">
-                    {post.community.name}
-                  </Badge>
-                )}
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>@{post?.owner?.username}</span>
-                <span>•</span>
-                <span>
+              <div className="flex flex-col gap-1 space-x-2 text-sm text-muted-foreground">
+                <span className="text-xs font-semibold">
+                  @{post?.owner?.username}
+                </span>
+
+                <span className="text-xs ">
                   {formatDistanceToNow(new Date(post.createdAt), {
                     addSuffix: true,
                   })}
                 </span>
-                {post.platform && (
-                  <>
-                    <span>•</span>
-                    <span className="capitalize">{post.platform}</span>
-                  </>
-                )}
               </div>
             </div>
           </button>
@@ -221,7 +241,7 @@ export function PostCard({ post }: PostCardProps) {
                 )}
               </Button>
             )}
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -229,11 +249,16 @@ export function PostCard({ post }: PostCardProps) {
               disabled={isBookmarkLoading}
               className={cn(
                 "h-8 w-8 p-0",
-                bookmarkStatus?.isBookmarked ? "text-primary" : "text-muted-foreground"
+                bookmarkStatus?.isBookmarked
+                  ? "text-primary"
+                  : "text-muted-foreground"
               )}
             >
               <Bookmark
-                className={cn("h-4 w-4", bookmarkStatus?.isBookmarked && "fill-current")}
+                className={cn(
+                  "h-4 w-4",
+                  bookmarkStatus?.isBookmarked && "fill-current"
+                )}
               />
             </Button>
 
@@ -252,14 +277,6 @@ export function PostCard({ post }: PostCardProps) {
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </DropdownMenuItem>
-                {post.sourceUrl && (
-                  <DropdownMenuItem asChild>
-                    <a href={post.sourceUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View Original
-                    </a>
-                  </DropdownMenuItem>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -324,7 +341,7 @@ export function PostCard({ post }: PostCardProps) {
                 <span className="text-sm font-medium">{likesCount}</span>
               )}
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -356,14 +373,14 @@ export function PostCard({ post }: PostCardProps) {
                 ))}
               </div>
             )}
-            
+
             <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              {post.engagementMetrics?.views > 0 && (
+              {/* {post.engagementMetrics?.views > 0 && (
                 <>
                   <span>{post.engagementMetrics.views} views</span>
                   <span>•</span>
                 </>
-              )}
+              )} */}
               <span>{likesCount} loves</span>
               {post.engagementMetrics?.comments > 0 && (
                 <>

@@ -37,7 +37,7 @@ export default function RootLayout({
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <header className="bg-background sticky top-0 flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
+            <header className="bg-background sticky z-50 top-0 flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
               <div>
                 <SidebarTrigger className="-ml-1" />
               </div>
