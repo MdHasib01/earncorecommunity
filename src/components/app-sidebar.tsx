@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ChevronRight, icons } from "lucide-react";
+import { ChevronRight, MicIcon as icons } from "lucide-react";
 
 import { SearchForm } from "@/components/search-form";
 import { VersionSwitcher } from "@/components/version-switcher";
@@ -39,37 +39,6 @@ import { useGetAllCommunitiesQuery } from "@/store/features/community/communityA
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
-    // {
-    //   title: "Communities",
-    //   url: "/dashboard/feed",
-    //   items: [
-    //     {
-    //       title: "ChatGPT",
-    //       url: "/dashboard/feed",
-    //       icon: chatgpt,
-    //     },
-    //     {
-    //       title: "claudeAI",
-    //       url: "/dashboard/feed",
-    //       icon: claude,
-    //     },
-    //     {
-    //       title: "Mid Journey",
-    //       url: "/dashboard/feed",
-    //       icon: midjourney,
-    //     },
-    //     {
-    //       title: "DeepSeek",
-    //       url: "/dashboard/feed",
-    //       icon: deepseek,
-    //     },
-    //     {
-    //       title: "Gork",
-    //       url: "/dashboard/feed",
-    //       icon: gork,
-    //     },
-    //   ],
-    // },
     {
       title: "Courses",
       url: "#",
@@ -108,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
               >
                 <CollapsibleTrigger className="font-bold!">
-                  Communities
+                  <Link href="/dashboard/feed">Communities</Link>
                   <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
@@ -138,6 +107,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
+                    {/* All Communities Link */}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/dashboard/feed">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className="w-5 h-5 rounded border-2 border-dashed border-muted-foreground/50 flex items-center justify-center">
+                              <span className="text-xs">+</span>
+                            </div>
+                            View All Communities
+                          </div>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   </SidebarMenu>
                 </SidebarGroupContent>
               </CollapsibleContent>

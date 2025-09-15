@@ -1,4 +1,6 @@
 import { InfiniteFeed } from "@/components/feed/infinite-feed";
+import { CommunityHeader } from "@/components/feed/community-header";
+import { FeedFilters } from "@/components/feed/feed-filters";
 import React from "react";
 import {
   Breadcrumb,
@@ -9,12 +11,28 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-const FeedPage = async ({
+const CommunityFeedPage = async ({
   params,
+  searchParams,
 }: {
   params: Promise<{ community: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
   const { community } = await params;
+  const filters = await searchParams;
+
+  // Convert community slug to proper format for API
+  const communityName = community.replace(/-/g, ' ');
+  
+  // Extract filter parameters
+  const platform = typeof filters.platform === 'string' ? filters.platform : undefined;
+  const sortBy = typeof filters.sortBy === 'string' ? filters.sortBy : 'createdAt';
+  const sortType = typeof filters.sortType === 'string' ? filters.sortType : 'desc';
+  const search = typeof filters.search === 'string' ? filters.search : undefined;
+  const minQualityScore = typeof filters.minQualityScore === 'string' 
+    ? parseFloat(filters.minQualityScore) 
+    : undefined;
+  const authentic = filters.authentic !== 'false';
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,27 +40,45 @@ const FeedPage = async ({
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="#">Feed</BreadcrumbLink>
+              <BreadcrumbLink href="/dashboard/feed">Feed</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>{community}</BreadcrumbPage>
+              <BreadcrumbPage className="capitalize">
+                {community.replace(/-/g, ' ')}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="max-w-3xl mx-auto py-8 px-4">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Feed</h1>
-          <p className="text-foreground">
-            Discover what's happening in your communities
-          </p>
-        </header>
+      
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <CommunityHeader communitySlug={community} />
+        
+        <div className="mb-6">
+          <FeedFilters 
+            currentCommunity={community}
+            currentPlatform={platform}
+            currentSortBy={sortBy}
+            currentSortType={sortType}
+            currentSearch={search}
+            currentMinQualityScore={minQualityScore}
+            currentAuthentic={authentic}
+          />
+        </div>
 
-        <InfiniteFeed />
+        <InfiniteFeed
+          community={communityName}
+          platform={platform}
+          sortBy={sortBy}
+          sortType={sortType}
+          search={search}
+          minQualityScore={minQualityScore}
+          authentic={authentic}
+        />
       </div>
     </div>
   );
 };
 
-export default FeedPage;
+export default CommunityFeedPage;

@@ -1,51 +1,104 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useInView } from "react-intersection-observer";
 import { PostCard } from "./post-card";
 import { PostSkeleton } from "./post-skeleton";
 import { useGetFeedQuery } from "@/store/features/feed/feedApi";
-import { Loader } from "lucide-react";
+import { Loader, AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Post } from "@/store/features/feed/types";
 
-export function InfiniteFeed() {
-  const [limit, setLimit] = useState(10);
+interface InfiniteFeedProps {
+  community?: string;
+  platform?: string;
+  sortBy?: string;
+  sortType?: string;
+  search?: string;
+  minQualityScore?: number;
+  authentic?: boolean;
+}
+
+export function InfiniteFeed({
+  community,
+  platform,
+  sortBy = "createdAt",
+  sortType = "desc",
+  search,
+  minQualityScore,
+  authentic = true,
+}: InfiniteFeedProps) {
+  const [page, setPage] = useState(1);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 10;
 
   const { ref, inView } = useInView({
     threshold: 0,
     rootMargin: "100px",
   });
 
-  const { data, isLoading, isFetching, refetch } = useGetFeedQuery({
-    cursor: "1",
-    limit: limit,
+  const {
+    data,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useGetFeedQuery({
+    cursor: page.toString(),
+    limit,
+    community,
+    platform,
+    sortBy,
+    sortType,
+    search,
+    minQualityScore,
+    authentic,
   });
 
-  const loadMore = () => {
-    setLimit((prevLimit) => prevLimit + 10);
-  };
-
+  // Reset when filters change
   useEffect(() => {
-    // Safe check for data.docs existence and length
-    const docsLength = data?.docs?.length ?? 0;
+    setPage(1);
+    setAllPosts([]);
+    setHasMore(true);
+  }, [community, platform, sortBy, sortType, search, minQualityScore, authentic]);
 
-    if (inView && !isFetching && docsLength > 0) {
-      // Check if we have more posts to potentially load
-      const hasMorePosts = docsLength >= limit;
-
-      if (hasMorePosts) {
-        loadMore();
+  // Handle new data
+  useEffect(() => {
+    if (data?.docs) {
+      if (page === 1) {
+        // First page or filter change
+        setAllPosts(data.docs);
+      } else {
+        // Subsequent pages - append new posts
+        setAllPosts(prev => {
+          const existingIds = new Set(prev.map(post => post._id));
+          const newPosts = data.docs.filter(post => !existingIds.has(post._id));
+          return [...prev, ...newPosts];
+        });
       }
+      
+      // Check if there are more pages
+      setHasMore(data.hasNextPage);
     }
-  }, [inView, isFetching, data?.docs?.length, limit]);
+  }, [data, page]);
 
-  // Refetch when limit changes
+  // Load more when in view
   useEffect(() => {
-    if (limit > 10) {
-      // Only refetch when limit increases from initial value
-      refetch();
+    if (inView && !isFetching && hasMore && !isLoading) {
+      setPage(prev => prev + 1);
     }
-  }, [limit, refetch]);
+  }, [inView, isFetching, hasMore, isLoading]);
 
-  if (isLoading) {
+  const handleRetry = useCallback(() => {
+    setPage(1);
+    setAllPosts([]);
+    setHasMore(true);
+    refetch();
+  }, [refetch]);
+
+  // Initial loading state
+  if (isLoading && page === 1) {
     return (
       <div className="space-y-6">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -55,20 +108,52 @@ export function InfiniteFeed() {
     );
   }
 
-  const posts = data?.docs || [];
-  const hasMorePosts = posts.length >= limit;
+  // Error state
+  if (error && allPosts.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Failed to load posts</h3>
+        <p className="text-muted-foreground mb-4">
+          Something went wrong while loading the feed. Please try again.
+        </p>
+        <Button onClick={handleRetry} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Try Again
+        </Button>
+      </Card>
+    );
+  }
 
-  console.log("posts", posts, "limit", limit);
+  // Empty state
+  if (!isLoading && allPosts.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="text-muted-foreground">
+          <Loader className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-semibold mb-2">No posts found</h3>
+          <p>
+            {search 
+              ? `No posts found matching "${search}"`
+              : community
+              ? "This community doesn't have any posts yet"
+              : "No posts available at the moment"
+            }
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+      {allPosts.map((post) => (
+        <PostCard key={post._id} post={post} />
       ))}
 
-      {/* Loading trigger */}
+      {/* Loading trigger and states */}
       <div ref={ref} className="h-10">
-        {isFetching && hasMorePosts && (
+        {isFetching && hasMore && (
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
               <PostSkeleton key={`loading-${i}`} />
@@ -77,12 +162,28 @@ export function InfiniteFeed() {
         )}
       </div>
 
-      {!hasMorePosts && posts.length > 0 && (
-        <div className="text-center py-1 text-muted-foreground">
-          <div className="flex items-center justify-center">
-            <Loader className="mr-2  animate-spin" />
+      {/* End of feed indicator */}
+      {!hasMore && allPosts.length > 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-px bg-border flex-1 max-w-20" />
+            <span className="text-sm">You've reached the end</span>
+            <div className="h-px bg-border flex-1 max-w-20" />
           </div>
         </div>
+      )}
+
+      {/* Error state for pagination */}
+      {error && allPosts.length > 0 && (
+        <Card className="p-4 text-center">
+          <p className="text-sm text-muted-foreground mb-2">
+            Failed to load more posts
+          </p>
+          <Button onClick={handleRetry} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </Card>
       )}
     </div>
   );
