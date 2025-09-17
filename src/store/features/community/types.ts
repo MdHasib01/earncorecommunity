@@ -1,3 +1,5 @@
+import { Post } from "../feed/types";
+
 export interface CommunityTypes {
   _id: string;
   name: string;
@@ -20,6 +22,7 @@ export interface CommunityTypes {
     maxPostsPerScrape: number;
     qualityThreshold: number;
   };
+  posts: Post[];
   createdAt: Date;
   updatedAt: Date;
 }

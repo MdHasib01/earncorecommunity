@@ -22,16 +22,20 @@ const CommunityFeedPage = async ({
   const filters = await searchParams;
 
   // Convert community slug to proper format for API
-  const communityName = community.replace(/-/g, ' ');
-  
+  const communityName = community.replace(/-/g, " ");
+
   // Extract filter parameters
-  const sortBy = typeof filters.sortBy === 'string' ? filters.sortBy : 'createdAt';
-  const sortType = typeof filters.sortType === 'string' ? filters.sortType : 'desc';
-  const search = typeof filters.search === 'string' ? filters.search : undefined;
-  const minQualityScore = typeof filters.minQualityScore === 'string' 
-    ? parseFloat(filters.minQualityScore) 
-    : undefined;
-  const authentic = filters.authentic !== 'false';
+  const sortBy =
+    typeof filters.sortBy === "string" ? filters.sortBy : "createdAt";
+  const sortType =
+    typeof filters.sortType === "string" ? filters.sortType : "desc";
+  const search =
+    typeof filters.search === "string" ? filters.search : undefined;
+  const minQualityScore =
+    typeof filters.minQualityScore === "string"
+      ? parseFloat(filters.minQualityScore)
+      : undefined;
+  const authentic = filters.authentic !== "false";
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,24 +48,25 @@ const CommunityFeedPage = async ({
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
               <BreadcrumbPage className="capitalize">
-                {community.replace(/-/g, ' ')}
+                {community.replace(/-/g, " ")}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      
+
       <div className="max-w-4xl mx-auto py-8 px-4">
         <CommunityHeader communitySlug={community} />
-        
+
         <div className="mb-6">
-          <FeedFilters 
+          <FeedFilters
             currentCommunity={community}
             currentSortBy={sortBy}
             currentSortType={sortType}
             currentSearch={search}
             currentMinQualityScore={minQualityScore}
             currentAuthentic={authentic}
+            communitySlug={community}
           />
         </div>
 

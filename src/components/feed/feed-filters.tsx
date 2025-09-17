@@ -22,6 +22,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { useGetCommunityBySlugQuery } from "@/store/features/community/communityApi";
 
 interface FeedFiltersProps {
   currentCommunity?: string;
@@ -31,6 +32,7 @@ interface FeedFiltersProps {
   currentSearch?: string;
   currentMinQualityScore?: number;
   currentAuthentic?: boolean;
+  communitySlug?: string;
 }
 
 export function FeedFilters({
@@ -41,12 +43,18 @@ export function FeedFilters({
   currentSearch,
   currentMinQualityScore,
   currentAuthentic = true,
+  communitySlug = "",
 }: FeedFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
+  const { data: communities } = useGetCommunityBySlugQuery(communitySlug);
+  console.log(communities);
+
   const [searchValue, setSearchValue] = useState(currentSearch || "");
-  const [qualityScore, setQualityScore] = useState([currentMinQualityScore || 0]);
+  const [qualityScore, setQualityScore] = useState([
+    currentMinQualityScore || 0,
+  ]);
   const [isAuthentic, setIsAuthentic] = useState(currentAuthentic);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
@@ -65,7 +73,7 @@ export function FeedFilters({
 
   const updateFilters = (newFilters: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams);
-    
+
     Object.entries(newFilters).forEach(([key, value]) => {
       if (value && value !== "") {
         params.set(key, value);
@@ -74,10 +82,10 @@ export function FeedFilters({
       }
     });
 
-    const basePath = currentCommunity 
+    const basePath = currentCommunity
       ? `/dashboard/feed/${currentCommunity}`
       : "/dashboard/feed";
-    
+
     router.push(`${basePath}?${params.toString()}`);
   };
 
@@ -96,7 +104,8 @@ export function FeedFilters({
 
   const handleAdvancedFilters = () => {
     updateFilters({
-      minQualityScore: qualityScore[0] > 0 ? qualityScore[0].toString() : undefined,
+      minQualityScore:
+        qualityScore[0] > 0 ? qualityScore[0].toString() : undefined,
       authentic: isAuthentic ? "true" : "false",
     });
     setIsFiltersOpen(false);
@@ -106,11 +115,11 @@ export function FeedFilters({
     setSearchValue("");
     setQualityScore([0]);
     setIsAuthentic(true);
-    
-    const basePath = currentCommunity 
+
+    const basePath = currentCommunity
       ? `/dashboard/feed/${currentCommunity}`
       : "/dashboard/feed";
-    
+
     router.push(basePath);
   };
 
@@ -162,8 +171,8 @@ export function FeedFilters({
               <Filter className="h-4 w-4 mr-2" />
               Filters
               {activeFiltersCount > 0 && (
-                <Badge 
-                  variant="destructive" 
+                <Badge
+                  variant="destructive"
                   className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs"
                 >
                   {activeFiltersCount}
@@ -215,7 +224,7 @@ export function FeedFilters({
         {sortOptions.map((option) => {
           const Icon = option.icon;
           const isActive = currentSortBy === option.value;
-          
+
           return (
             <Button
               key={option.value}
@@ -250,10 +259,11 @@ export function FeedFilters({
               </Button>
             </Badge>
           )}
-          
+
           {currentPlatform && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Platform: {platforms.find(p => p.value === currentPlatform)?.label}
+              Platform:{" "}
+              {platforms.find((p) => p.value === currentPlatform)?.label}
               <Button
                 variant="ghost"
                 size="sm"
@@ -264,7 +274,7 @@ export function FeedFilters({
               </Button>
             </Badge>
           )}
-          
+
           {currentMinQualityScore && currentMinQualityScore > 0 && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Quality: {currentMinQualityScore}%+

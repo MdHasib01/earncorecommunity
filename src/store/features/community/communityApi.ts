@@ -9,7 +9,12 @@ export const communityApi = createApi({
       query: () => "community",
       transformResponse: (res: { data: CommunityTypes[] }) => res.data,
     }),
+    getCommunityBySlug: builder.query<CommunityTypes, string>({
+      query: (communityId) => `community/${communityId}`,
+      transformResponse: (res: { data: CommunityTypes }) => res.data,
+    }),
   }),
 });
 
-export const { useGetAllCommunitiesQuery } = communityApi;
+export const { useGetAllCommunitiesQuery, useGetCommunityBySlugQuery } =
+  communityApi;
