@@ -55,7 +55,7 @@ export function CommunityHeader({ communitySlug }: CommunityHeaderProps) {
 
   return (
     <Card className="p-6 mb-8">
-      <div className="flex items-start space-x-4">
+      <div className="flex items-start space-x-4 flex-wrap">
         <Avatar className="h-16 w-16">
           <AvatarImage
             src={community.icon}
@@ -67,7 +67,7 @@ export function CommunityHeader({ communitySlug }: CommunityHeaderProps) {
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3 ">
           <div>
             <div className="flex items-center space-x-3 mb-2">
               <h1 className="text-2xl font-bold">{community.name}</h1>
@@ -84,17 +84,17 @@ export function CommunityHeader({ communitySlug }: CommunityHeaderProps) {
           </div>
 
           <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-            <div className="flex items-center space-x-1">
+            {/* <div className="flex items-center space-x-1">
               <Users className="h-4 w-4" />
               <span>
                 {community.memberCount?.toLocaleString() || 0} members
               </span>
-            </div>
+            </div> */}
 
-            <div className="flex items-center space-x-1">
+            {/* <div className="flex items-center space-x-1">
               <FileText className="h-4 w-4" />
               <span>{community.postCount?.toLocaleString() || 0} posts</span>
-            </div>
+            </div> */}
 
             {community?.lastUpdatedAt && (
               <div className="flex items-center space-x-1">
