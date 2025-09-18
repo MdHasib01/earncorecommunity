@@ -101,6 +101,7 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
       <div className="flex space-x-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarImage
+            className="object-cover"
             src={comment.owner.avatar}
             alt={comment.owner.fullName}
           />
@@ -109,16 +110,18 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 space-y-2">
+        <div className="flex-1  space-y-2">
           <div className="bg-muted rounded-lg p-3">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold text-sm text-foreground">
-                  {comment.owner.fullName}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  @{comment.owner.username}
-                </span>
+            <div className="flex md:items-center justify-between mb-1">
+              <div className="flex  md:items-center space-x-2">
+                <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+                  <span className="font-semibold text-sm text-foreground">
+                    {comment.owner.fullName}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    @{comment.owner.username}
+                  </span>
+                </div>
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(comment.createdAt), {
                     addSuffix: true,
@@ -363,6 +366,15 @@ export function CommentsDrawer({
           {/* Comment Input */}
           <div className="border-t border-border p-4 space-y-3">
             <div className="relative">
+              {showEmojiPicker && (
+                <div className="absolute bottom-full  mb-2 z-50">
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiSelect}
+                    width={300}
+                    height={400}
+                  />
+                </div>
+              )}
               <Textarea
                 placeholder="Write a comment..."
                 value={newComment}
@@ -389,16 +401,6 @@ export function CommentsDrawer({
                 </Button>
               </div>
             </div>
-
-            {showEmojiPicker && (
-              <div className="absolute bottom-full right-4 z-50">
-                <EmojiPicker
-                  onEmojiClick={handleEmojiSelect}
-                  width={300}
-                  height={400}
-                />
-              </div>
-            )}
           </div>
         </div>
       </DrawerContent>
