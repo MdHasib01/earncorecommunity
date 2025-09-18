@@ -43,7 +43,7 @@ const CommunityFeedPage = async ({
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/dashboard/feed">Feed</BreadcrumbLink>
+              <BreadcrumbLink href="/">Feed</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>

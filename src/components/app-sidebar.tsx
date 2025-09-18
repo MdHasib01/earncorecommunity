@@ -45,7 +45,7 @@ const data = {
       items: [
         {
           title: "Master The Hiring Game",
-          url: "/dashboard/course/1",
+          url: "/course/1",
           icon: hiringGame,
         },
       ],
@@ -77,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
               >
                 <CollapsibleTrigger className="font-bold!">
-                  <Link href="/dashboard/feed">Communities</Link>
+                  <Link href="/">Communities</Link>
                   <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
@@ -87,9 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {communities.map((item) => (
                       <SidebarMenuItem key={item?._id}>
                         <SidebarMenuButton asChild>
-                          <Link
-                            href={`/dashboard/feed/${makeLink(item?.name)}`}
-                          >
+                          <Link href={`/feed/${makeLink(item?.name)}`}>
                             <div className="flex items-center gap-2">
                               {item?.icon && (
                                 <img
@@ -110,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {/* All Communities Link */}
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link href="/dashboard/feed">
+                        <Link href="/">
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <div className="w-5 h-5 rounded border-2 border-dashed border-muted-foreground/50 flex items-center justify-center">
                               <span className="text-xs">+</span>

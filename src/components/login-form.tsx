@@ -46,7 +46,7 @@ export function LoginForm({
     try {
       await login({ email, password }).unwrap();
       // await refetchUser();
-      router.push("/dashboard/feed");
+      router.push("/");
       toast.success("Login successful");
     } catch (error) {
       console.error("Login failed:", error);
