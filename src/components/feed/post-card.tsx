@@ -287,7 +287,7 @@ export function PostCard({ post }: PostCardProps) {
           <h2 className="text-xl font-bold text-foreground mb-3 leading-tight">
             {post.title}
           </h2>
-          <div className="prose max-w-none leading-relaxed">
+          <div className="prose wrap-break-word leading-relaxed">
             <div
               dangerouslySetInnerHTML={{
                 __html: formatContent(truncateContent(post.content)),
