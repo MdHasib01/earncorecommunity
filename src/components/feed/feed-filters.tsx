@@ -82,7 +82,7 @@ export function FeedFilters({
       }
     });
 
-    const basePath = currentCommunity ? `/feed/${currentCommunity}` : "/feed";
+    const basePath = currentCommunity ? `/feed/${currentCommunity}` : "/";
 
     router.push(`${basePath}?${params.toString()}`);
   };
@@ -114,7 +114,7 @@ export function FeedFilters({
     setQualityScore([0]);
     setIsAuthentic(true);
 
-    const basePath = currentCommunity ? `/feed/${currentCommunity}` : "/feed";
+    const basePath = currentCommunity ? `/feed/${currentCommunity}` : "/";
 
     router.push(basePath);
   };

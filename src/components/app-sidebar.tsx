@@ -34,6 +34,7 @@ import midjourney from "../assets/icons/midjourney.png";
 import hiringGame from "../assets/icons/chess-piece.png";
 import Link from "next/link";
 import { useGetAllCommunitiesQuery } from "@/store/features/community/communityApi";
+import { useTheme } from "next-themes";
 
 // This is sample data.
 const data = {
@@ -57,6 +58,7 @@ const makeLink = (href: string) => href.toLowerCase().replaceAll(" ", "-");
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: communities = [] } = useGetAllCommunitiesQuery();
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
