@@ -15,8 +15,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { ThemeSwitcher } from "./theme-switcher";
+import { useTheme } from "next-themes";
 
 export function VersionSwitcher() {
+  const { setTheme, resolvedTheme } = useTheme();
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -39,7 +41,11 @@ export function VersionSwitcher() {
             className="w-(--radix-dropdown-menu-trigger-width)"
             align="start"
           >
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
+            >
               <div className="w-full">
                 <ThemeSwitcher />
               </div>
