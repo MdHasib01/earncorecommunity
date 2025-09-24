@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import {
   Send,
   Smile,
@@ -95,7 +95,12 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
       console.error("Failed to add reply:", error);
     }
   };
+  function formatCustomDate(date: Date): string {
+    const now = new Date();
+    const isSameYear = date.getFullYear() === now.getFullYear();
 
+    return format(date, isSameYear ? "MMM d" : "MMM d, yyyy");
+  }
   return (
     <div className={cn("space-y-3", isReply && "ml-8")}>
       <div className="flex space-x-3">
@@ -123,9 +128,7 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
                   </span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(comment.createdAt), {
-                    addSuffix: true,
-                  })}
+                  {formatCustomDate(new Date(comment.createdAt))}
                 </span>
                 {comment.isEdited && (
                   <span className="text-xs text-muted-foreground">
