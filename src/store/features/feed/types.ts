@@ -74,7 +74,7 @@ export interface Post {
   lovesCount?: number;
   commentsCount?: number;
   engagementMetrics: EngagementMetrics;
-  localEngagement?: LocalEngagement;
+  localEngagement: LocalEngagement;
   totalEngagement?: number;
   scrapingMetadata?: ScrapingMetadata;
   isLoved: boolean;

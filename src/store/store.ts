@@ -5,6 +5,7 @@ import { feedApi } from "./features/feed/feedApi";
 import { communityApi } from "./features/community/communityApi";
 import authSlice from "./features/authentication/authSlice";
 import { authApi } from "./features/authentication/authApi";
+import { profileApi } from "./features/profile/profileAPI";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     lms: lmsReducer,
     [lmsApi.reducerPath]: lmsApi.reducer,
     [feedApi.reducerPath]: feedApi.reducer,
+    [profileApi.reducerPath]: profileApi.reducer,
     [communityApi.reducerPath]: communityApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
   },
@@ -19,6 +21,7 @@ export const store = configureStore({
     getDefaultMiddleware().concat(
       lmsApi.middleware,
       feedApi.middleware,
+      profileApi.middleware,
       communityApi.middleware,
       authApi.middleware
     ),

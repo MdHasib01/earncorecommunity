@@ -7,6 +7,7 @@ import {
   useGetUserBookmarksQuery,
   useGetUserLikedPostsQuery,
   useGetUserPostsQuery,
+  useGetUserProfileQuery,
   useUpdateProfileMutation,
 } from "@/store/features/feed/feedApi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,11 +34,17 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useGetMyProfileQuery } from "@/store/features/profile/profileAPI";
 
 export default function MyProfilePage() {
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
+  const {
+    data: userProfile,
+    isLoading: userLoading,
+    error: userError,
+  } = useGetMyProfileQuery();
 
   // Form state for editing
   const [editForm, setEditForm] = useState({
@@ -234,21 +241,21 @@ export default function MyProfilePage() {
                       <div className="flex items-center gap-1">
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {currentUser.postsCount || 0}
+                          {userProfile?.postsCount || 0}
                         </span>
                         <span className="text-muted-foreground">posts</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {currentUser.followersCount || 0}
+                          {userProfile?.followersCount || 0}
                         </span>
                         <span className="text-muted-foreground">followers</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {currentUser.followingCount || 0}
+                          {userProfile?.followingCount || 0}
                         </span>
                         <span className="text-muted-foreground">following</span>
                       </div>
@@ -281,11 +288,11 @@ export default function MyProfilePage() {
           </TabsList>
 
           <TabsContent value="posts" className="mt-6">
-            {postsLoading ? (
+            {userLoading ? (
               <PostsSkeleton />
-            ) : userPosts?.docs?.length ? (
+            ) : userProfile?.posts?.length ? (
               <div className="space-y-6">
-                {userPosts.docs.map((post) => (
+                {userProfile?.posts?.map((post: any) => (
                   <PostCard key={post._id} post={post} />
                 ))}
               </div>
@@ -299,11 +306,11 @@ export default function MyProfilePage() {
           </TabsContent>
 
           <TabsContent value="liked" className="mt-6">
-            {likedLoading ? (
+            {userLoading ? (
               <PostsSkeleton />
-            ) : likedPosts?.length ? (
+            ) : userProfile?.likes?.length ? (
               <div className="space-y-6">
-                {likedPosts.map((item) => (
+                {userProfile?.likes?.map((item: any) => (
                   <PostCard key={item._id} post={item.post} />
                 ))}
               </div>

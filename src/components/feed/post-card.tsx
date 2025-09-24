@@ -49,7 +49,7 @@ export function PostCard({ post }: PostCardProps) {
   const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(post.isLoved);
   const [likesCount, setLikesCount] = useState(
-    post.engagementMetrics?.likes || 0
+    post.engagementMetrics?.likes + post.localEngagement?.likes || 0
   );
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -349,9 +349,12 @@ export function PostCard({ post }: PostCardProps) {
               className="flex items-center space-x-1 text-muted-foreground hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:text-blue-600 dark:hover:text-blue-400"
             >
               <MessageCircle className="h-5 w-5" />
-              {post.engagementMetrics?.comments > 0 && (
+              {post.engagementMetrics?.comments +
+                post.localEngagement.comments >
+                0 && (
                 <span className="text-sm font-medium">
-                  {post.engagementMetrics.comments}
+                  {post.engagementMetrics.comments +
+                    post.localEngagement.comments}
                 </span>
               )}
             </Button>
@@ -382,10 +385,16 @@ export function PostCard({ post }: PostCardProps) {
                 </>
               )} */}
               <span>{likesCount} loves</span>
-              {post.engagementMetrics?.comments > 0 && (
+              {post.engagementMetrics?.comments +
+                post.localEngagement?.comments >
+                0 && (
                 <>
                   <span>•</span>
-                  <span>{post.engagementMetrics.comments} comments</span>
+                  <span>
+                    {post.engagementMetrics.comments +
+                      post.localEngagement.comments}{" "}
+                    comments
+                  </span>
                 </>
               )}
             </div>
