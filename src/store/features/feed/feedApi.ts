@@ -136,6 +136,13 @@ export const feedApi = createApi({
         { type: "User", id: username },
       ],
     }),
+    getUserProfileById: builder.query<User, string>({
+      query: (userId) => `users/p/${userId}`,
+      transformResponse: (response: any) => response.data,
+      providesTags: (result, error, username) => [
+        { type: "User", id: username },
+      ],
+    }),
 
     // Like endpoints
     togglePostLike: builder.mutation<{ liked: boolean }, string>({
@@ -450,6 +457,7 @@ export const {
   useGetPostCommentsQuery,
   useGetCommentRepliesQuery,
   useGetUserProfileQuery,
+  useGetUserProfileByIdQuery,
   useTogglePostLikeMutation,
   useToggleCommentLikeMutation,
   useGetPostLikesQuery,

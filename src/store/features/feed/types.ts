@@ -18,6 +18,7 @@ export interface User {
   joinedDate?: string;
   createdAt?: string;
   updatedAt?: string;
+  posts: Post[];
 }
 
 export interface Community {

@@ -68,7 +68,7 @@ export function PostCard({ post }: PostCardProps) {
   });
 
   // Check bookmark status
-  const { data: bookmarkStatus } = useCheckBookmarkStatusQuery(post._id);
+  // const { data: bookmarkStatus } = useCheckBookmarkStatusQuery(post._id);
 
   // Liked posts list for current user
   const { data: likedPosts } = useGetUserLikedPostsQuery(
@@ -242,7 +242,7 @@ export function PostCard({ post }: PostCardProps) {
               </Button>
             )}
 
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={handleBookmarkClick}
@@ -260,7 +260,7 @@ export function PostCard({ post }: PostCardProps) {
                   bookmarkStatus?.isBookmarked && "fill-current"
                 )}
               />
-            </Button>
+            </Button> */}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

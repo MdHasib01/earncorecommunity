@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useGetUserProfileQuery, useGetUserPostsQuery } from "@/store/features/feed/feedApi";
+import {
+  useGetUserProfileQuery,
+  useGetUserPostsQuery,
+  useGetUserProfileByIdQuery,
+} from "@/store/features/feed/feedApi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -9,21 +13,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostCard } from "@/components/feed/post-card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Calendar, 
-  Users, 
-  FileText, 
-  Heart, 
+import {
+  Calendar,
+  Users,
+  FileText,
+  Heart,
   MessageCircle,
   UserPlus,
   UserCheck,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { useToggleFollowMutation, useCheckFollowStatusQuery } from "@/store/features/feed/feedApi";
+import {
+  useToggleFollowMutation,
+  useCheckFollowStatusQuery,
+} from "@/store/features/feed/feedApi";
 import { cn } from "@/lib/utils";
 
 interface UserProfileClientProps {
@@ -34,25 +41,25 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
   const router = useRouter();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState("posts");
-  
-  const { data: user, isLoading: userLoading, error: userError } = useGetUserProfileQuery(userId);
-  const { data: userPosts, isLoading: postsLoading } = useGetUserPostsQuery({ 
-    userId, 
-    page: 1, 
-    limit: 10 
-  });
-  
+
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+  } = useGetUserProfileByIdQuery(userId);
+
   const { data: followStatus } = useCheckFollowStatusQuery(userId, {
     skip: !currentUser || currentUser._id === userId,
   });
-  
-  const [toggleFollow, { isLoading: isFollowLoading }] = useToggleFollowMutation();
+
+  const [toggleFollow, { isLoading: isFollowLoading }] =
+    useToggleFollowMutation();
 
   const isOwnProfile = currentUser?._id === userId;
 
   const handleFollowClick = async () => {
     if (!currentUser || isOwnProfile) return;
-    
+
     try {
       await toggleFollow(userId).unwrap();
     } catch (error) {
@@ -86,8 +93,8 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
       <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => router.back()}
             className="mb-4"
           >
@@ -103,8 +110,8 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
               {/* Avatar */}
               <div className="flex-shrink-0">
                 <Avatar className="h-32 w-32">
-                  <AvatarImage 
-                    src={user.avatar} 
+                  <AvatarImage
+                    src={user.avatar}
                     alt={user.fullName}
                     className="object-cover"
                   />
@@ -134,7 +141,9 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
                     <Button
                       onClick={handleFollowClick}
                       disabled={isFollowLoading}
-                      variant={followStatus?.isFollowing ? "outline" : "default"}
+                      variant={
+                        followStatus?.isFollowing ? "outline" : "default"
+                      }
                       className="w-full sm:w-auto"
                     >
                       {followStatus?.isFollowing ? (
@@ -152,7 +161,7 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
                   )}
 
                   {isOwnProfile && (
-                    <Button 
+                    <Button
                       onClick={() => router.push("/my-profile")}
                       variant="outline"
                       className="w-full sm:w-auto"
@@ -176,19 +185,26 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium">{user.followersCount || 0}</span>
+                    <span className="font-medium">
+                      {user.followersCount || 0}
+                    </span>
                     <span className="text-muted-foreground">followers</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium">{user.followingCount || 0}</span>
+                    <span className="font-medium">
+                      {user.followingCount || 0}
+                    </span>
                     <span className="text-muted-foreground">following</span>
                   </div>
                   {user.createdAt && (
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4 text-muted-foreground" />
                       <span className="text-muted-foreground">
-                        Joined {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+                        Joined{" "}
+                        {formatDistanceToNow(new Date(user.createdAt), {
+                          addSuffix: true,
+                        })}
                       </span>
                     </div>
                   )}
@@ -205,7 +221,7 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
           </TabsList>
 
           <TabsContent value="posts" className="mt-6">
-            {postsLoading ? (
+            {userLoading ? (
               <div className="space-y-6">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <Card key={i} className="p-6">
@@ -221,9 +237,9 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
                   </Card>
                 ))}
               </div>
-            ) : userPosts?.docs?.length ? (
+            ) : user?.posts?.length ? (
               <div className="space-y-6">
-                {userPosts.docs.map((post) => (
+                {user.posts.map((post) => (
                   <PostCard key={post._id} post={post} />
                 ))}
               </div>
@@ -232,10 +248,9 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
                 <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
                 <p className="text-muted-foreground">
-                  {isOwnProfile 
-                    ? "You haven't created any posts yet." 
-                    : `${user.fullName} hasn't posted anything yet.`
-                  }
+                  {isOwnProfile
+                    ? "You haven't created any posts yet."
+                    : `${user.fullName} hasn't posted anything yet.`}
                 </p>
               </Card>
             )}
@@ -251,7 +266,7 @@ function UserProfileSkeleton() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto py-8 px-4">
         <Skeleton className="h-10 w-20 mb-6" />
-        
+
         <Card className="mb-8">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row gap-6">
