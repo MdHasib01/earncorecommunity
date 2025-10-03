@@ -19,10 +19,8 @@ const CommunityFeedPage = async ({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
   const { community } = await params;
+  console.log("community", community);
   const filters = await searchParams;
-
-  // Convert community slug to proper format for API
-  const communityName = community.replace(/-/g, " ");
 
   // Extract filter parameters
   const sortBy =
@@ -71,7 +69,7 @@ const CommunityFeedPage = async ({
         </div>
 
         <InfiniteFeed
-          community={communityName}
+          community={community}
           sortBy={sortBy}
           sortType={sortType}
           search={search}
