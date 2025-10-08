@@ -44,15 +44,25 @@ interface CommentsDrawerProps {
   postId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onRequireAuth?: () => void;
+  isAuthenticated?: boolean;
 }
 
 interface CommentItemProps {
   comment: Comment;
   postId: string;
   isReply?: boolean;
+  onRequireAuth?: () => void;
+  isAuthenticated: boolean;
 }
 
-function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
+function CommentItem({
+  comment,
+  postId,
+  isReply = false,
+  onRequireAuth,
+  isAuthenticated,
+}: CommentItemProps) {
   const [showReplies, setShowReplies] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
@@ -71,16 +81,26 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
     );
 
   const handleLikeClick = async () => {
+    if (!isAuthenticated) {
+      onRequireAuth?.();
+      return;
+    }
+
     try {
       const result = await toggleCommentLike(comment._id).unwrap();
       setIsLiked(result.liked);
-      setLikesCount((prev) => (result.liked ? prev + 1 : prev - 1));
+      setLikesCount((prev) => (result.liked ? prev + 1 : Math.max(prev - 1, 0)));
     } catch (error) {
       console.error("Failed to toggle comment like:", error);
     }
   };
 
   const handleReplySubmit = async () => {
+    if (!isAuthenticated) {
+      onRequireAuth?.();
+      return;
+    }
+
     if (!replyContent.trim()) return;
 
     try {
@@ -174,12 +194,18 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
             </Button>
 
             {!isReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsReplying(!isReplying)}
-                className="h-6 px-2 text-xs text-muted-foreground hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:text-blue-600"
-              >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  onRequireAuth?.();
+                  return;
+                }
+                setIsReplying(!isReplying);
+              }}
+              className="h-6 px-2 text-xs text-muted-foreground hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:text-blue-600"
+            >
                 <MessageCircle className="h-3 w-3 mr-1" />
                 Reply
               </Button>
@@ -259,6 +285,8 @@ function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
                 comment={reply}
                 postId={postId}
                 isReply={true}
+                onRequireAuth={onRequireAuth}
+                isAuthenticated={isAuthenticated}
               />
             ))
           )}
@@ -272,6 +300,8 @@ export function CommentsDrawer({
   postId,
   open,
   onOpenChange,
+  onRequireAuth,
+  isAuthenticated = false,
 }: CommentsDrawerProps) {
   const [newComment, setNewComment] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -286,6 +316,11 @@ export function CommentsDrawer({
   const [addComment, { isLoading: isAddingComment }] = useAddCommentMutation();
 
   const handleSubmitComment = async () => {
+    if (!isAuthenticated) {
+      onRequireAuth?.();
+      return;
+    }
+
     if (!newComment.trim()) return;
 
     try {
@@ -339,6 +374,8 @@ export function CommentsDrawer({
                     key={comment._id}
                     comment={comment}
                     postId={postId}
+                    onRequireAuth={onRequireAuth}
+                    isAuthenticated={isAuthenticated}
                   />
                 ))}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   Heart,
@@ -25,8 +25,6 @@ import {
   useToggleBookmarkMutation,
   useToggleFollowMutation,
   useCheckFollowStatusQuery,
-  useCheckBookmarkStatusQuery,
-  useGetUserLikedPostsQuery,
 } from "@/store/features/feed/feedApi";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
@@ -38,6 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AuthRequiredDialog } from "./auth-required-dialog";
 
 interface PostCardProps {
   post: Post;
@@ -49,10 +48,15 @@ export function PostCard({ post }: PostCardProps) {
   const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(post.isLoved);
   const [likesCount, setLikesCount] = useState(
-    post.engagementMetrics?.likes + post.localEngagement?.likes || 0
+    (post.engagementMetrics?.likes || 0) +
+      (post.localEngagement?.likes || 0)
   );
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
   const isOwnPost = currentUser?._id === post.owner._id;
 
   const [toggleLove, { isLoading: isLikeLoading }] =
@@ -70,39 +74,38 @@ export function PostCard({ post }: PostCardProps) {
   // Check bookmark status
   // const { data: bookmarkStatus } = useCheckBookmarkStatusQuery(post._id);
 
-  // Liked posts list for current user
-  const { data: likedPosts } = useGetUserLikedPostsQuery(
-    { page: 1, limit: 100 },
-    {
-      skip: !currentUser,
+  useEffect(() => {
+    setIsLiked(post.isLoved);
+    setLikesCount(
+      (post.engagementMetrics?.likes || 0) +
+        (post.localEngagement?.likes || 0)
+    );
+  }, [post]);
+
+  const requireAuthentication = useCallback(() => {
+    if (!isAuthenticated) {
+      setIsAuthDialogOpen(true);
+      return true;
     }
-  );
-
-  const isPostInLikedList = !!likedPosts?.some(
-    (lp) => lp.post?._id === post._id
-  );
-
-  // Derive isLiked from server liked list when available
-  if (isPostInLikedList !== undefined && isPostInLikedList !== isLiked) {
-    // keep local UI in sync with server knowledge
-    // avoid state churn if mutation is in-flight; but here like toggle returns result to update too
-    setIsLiked(isPostInLikedList);
-  }
+    return false;
+  }, [isAuthenticated]);
 
   const handleLoveClick = async () => {
-    if (isLikeLoading) return;
+    if (isLikeLoading || requireAuthentication()) return;
 
     try {
       const result = await toggleLove(post._id).unwrap();
       setIsLiked(result.liked);
-      setLikesCount((prev) => (result.liked ? prev + 1 : prev - 1));
+      setLikesCount((prev) =>
+        result.liked ? prev + 1 : Math.max(prev - 1, 0)
+      );
     } catch (error) {
       console.error("Failed to toggle like:", error);
     }
   };
 
   const handleBookmarkClick = async () => {
-    if (isBookmarkLoading) return;
+    if (isBookmarkLoading || requireAuthentication()) return;
 
     try {
       await toggleBookmark({ postId: post._id }).unwrap();
@@ -112,7 +115,7 @@ export function PostCard({ post }: PostCardProps) {
   };
 
   const handleFollowClick = async () => {
-    if (isFollowLoading || isOwnPost) return;
+    if (isFollowLoading || isOwnPost || requireAuthentication()) return;
 
     try {
       await toggleFollow(post.owner._id).unwrap();
@@ -412,12 +415,20 @@ export function PostCard({ post }: PostCardProps) {
         postId={post?._id}
         open={isCommentsDrawerOpen}
         onOpenChange={setIsCommentsDrawerOpen}
+        onRequireAuth={() => setIsAuthDialogOpen(true)}
+        isAuthenticated={isAuthenticated}
       />
 
       <PostContentDialog
         post={post}
         open={isContentDialogOpen}
         onOpenChange={setIsContentDialogOpen}
+      />
+
+      <AuthRequiredDialog
+        open={isAuthDialogOpen}
+        onOpenChange={setIsAuthDialogOpen}
+        description="Please log in to interact with posts."
       />
     </>
   );

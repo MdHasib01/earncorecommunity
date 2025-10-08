@@ -40,19 +40,24 @@ export const feedApi = createApi({
       }) => ({
         url: "posts",
         params: {
-          page: cursor,
-          limit: limit,
-          ...(community && { community }),
-          ...(platform && { platform }),
-          ...(sortBy && { sortBy }),
-          ...(sortType && { sortType }),
-          ...(search && { search }),
-          ...(minQualityScore && { minQualityScore }),
-          ...(authentic !== undefined && { authentic }),
+          "pagination[page]": cursor,
+          "pagination[limit]": limit,
+          ...(community && { "filters[community]": community }),
+          ...(platform && { "filters[platform]": platform }),
+          ...(sortBy && { "sort[field]": sortBy }),
+          ...(sortType && { "sort[order]": sortType }),
+          ...(search && { "filters[search]": search }),
+          ...(typeof minQualityScore === "number" && {
+            "filters[minQualityScore]": minQualityScore,
+          }),
+          ...(authentic !== undefined && { "filters[authentic]": authentic }),
         },
       }),
       transformResponse: (response: any) => {
-        return response.data;
+        if (response?.data) {
+          return response.data;
+        }
+        return response;
       },
       providesTags: (result) => [
         "Post",
@@ -93,9 +98,14 @@ export const feedApi = createApi({
         sortType = "desc",
       }) => ({
         url: `comments/post/${postId}`,
-        params: { page, limit, sortBy, sortType },
+        params: {
+          "pagination[page]": page,
+          "pagination[limit]": limit,
+          ...(sortBy && { "sort[field]": sortBy }),
+          ...(sortType && { "sort[order]": sortType }),
+        },
       }),
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: any) => response.data ?? response,
       providesTags: (result, error, { postId }) => [
         { type: "Comment", id: `POST_${postId}` },
         ...(result?.docs || []).map(({ _id }) => ({
@@ -117,9 +127,12 @@ export const feedApi = createApi({
     >({
       query: ({ commentId, page = 1, limit = 10 }) => ({
         url: `comments/${commentId}/replies`,
-        params: { page, limit },
+        params: {
+          "pagination[page]": page,
+          "pagination[limit]": limit,
+        },
       }),
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: any) => response.data ?? response,
       providesTags: (result, error, { commentId }) => [
         { type: "Comment", id: `REPLIES_${commentId}` },
         ...(result?.docs || []).map(({ _id }) => ({
@@ -182,9 +195,12 @@ export const feedApi = createApi({
     >({
       query: ({ postId, page = 1, limit = 20 }) => ({
         url: `likes/post/${postId}/users`,
-        params: { page, limit },
+        params: {
+          "pagination[page]": page,
+          "pagination[limit]": limit,
+        },
       }),
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: any) => response.data ?? response,
       providesTags: (result, error, { postId }) => [
         { type: "Like", id: `POST_${postId}` },
       ],
@@ -196,11 +212,14 @@ export const feedApi = createApi({
     >({
       query: ({ page = 1, limit = 10 }) => ({
         url: "likes/user/posts",
-        params: { page, limit },
+        params: {
+          "pagination[page]": page,
+          "pagination[limit]": limit,
+        },
       }),
       transformResponse: (response: any) => {
-        console.log(response.data, "response");
-        return response.data;
+        const payload = response?.data ?? response;
+        return payload?.docs ?? payload;
       },
       providesTags: ["Like"],
     }),
@@ -241,14 +260,14 @@ export const feedApi = createApi({
       query: ({ page = 1, limit = 10, collection }) => ({
         url: "bookmarks",
         params: {
-          page,
-          limit,
-          ...(collection && { collection }),
+          "pagination[page]": page,
+          "pagination[limit]": limit,
+          ...(collection && { "filters[collection]": collection }),
         },
       }),
       transformResponse: (response: any) => {
-        console.log(response);
-        return response;
+        const payload = response?.data ?? response;
+        return payload;
       },
 
       providesTags: ["Bookmark"],
@@ -423,9 +442,13 @@ export const feedApi = createApi({
     >({
       query: ({ userId, page = 1, limit = 10 }) => ({
         url: `posts/user/${userId}`,
-        params: { page, limit },
+        params: {
+          "pagination[page]": page,
+          "pagination[limit]": limit,
+          "filters[userId]": userId,
+        },
       }),
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: any) => response.data ?? response,
       providesTags: (result, error, { userId }) => [
         { type: "Post", id: `USER_${userId}` },
         ...(result?.docs || []).map(({ _id }) => ({
@@ -433,6 +456,23 @@ export const feedApi = createApi({
           id: _id,
         })),
       ],
+    }),
+
+    createPost: builder.mutation<
+      Post,
+      { title: string; content: string; communityId: string }
+    >({
+      query: ({ title, content, communityId }) => ({
+        url: "posts",
+        method: "POST",
+        body: {
+          title,
+          content,
+          community: communityId,
+        },
+      }),
+      transformResponse: (response: any) => response.data ?? response,
+      invalidatesTags: ["Post"],
     }),
 
     // Update profile
@@ -475,5 +515,6 @@ export const {
   useUpdateCommentMutation,
   useDeleteCommentMutation,
   useGetUserPostsQuery,
+  useCreatePostMutation,
   useUpdateProfileMutation,
 } = feedApi;

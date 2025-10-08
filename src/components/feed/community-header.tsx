@@ -5,7 +5,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, FileText, Calendar } from "lucide-react";
+import { Calendar, PenSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CreatePostDialog } from "./create-post-dialog";
+import { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { AuthRequiredDialog } from "./auth-required-dialog";
 
 interface CommunityHeaderProps {
   communitySlug: string;
@@ -13,11 +19,30 @@ interface CommunityHeaderProps {
 
 export function CommunityHeader({ communitySlug }: CommunityHeaderProps) {
   const { data: communities, isLoading } = useGetAllCommunitiesQuery();
-
-  const community = communities?.find(
-    (c) =>
-      c.name.toLowerCase().replace(/\s+/g, "-") === communitySlug.toLowerCase()
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
   );
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
+  const community = useMemo(
+    () =>
+      communities?.find(
+        (c) =>
+          c.name.toLowerCase().replace(/\s+/g, "-") ===
+          communitySlug.toLowerCase()
+      ),
+    [communities, communitySlug]
+  );
+
+  const handleOpenCreatePost = () => {
+    if (!isAuthenticated) {
+      setIsAuthDialogOpen(true);
+      return;
+    }
+
+    setIsCreateDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -69,11 +94,18 @@ export function CommunityHeader({ communitySlug }: CommunityHeaderProps) {
 
         <div className="flex-1 space-y-3 ">
           <div>
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-2xl font-bold">{community.name}</h1>
-              <Badge variant="secondary" className="capitalize">
-                {community.category.replace(/-/g, " ")}
-              </Badge>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-2xl font-bold">{community.name}</h1>
+                <Badge variant="secondary" className="capitalize">
+                  {community.category.replace(/-/g, " ")}
+                </Badge>
+              </div>
+
+              <Button onClick={handleOpenCreatePost} className="w-full md:w-auto">
+                <PenSquare className="mr-2 h-4 w-4" />
+                Create Post
+              </Button>
             </div>
 
             {community.description && (
@@ -108,6 +140,18 @@ export function CommunityHeader({ communitySlug }: CommunityHeaderProps) {
           </div>
         </div>
       </div>
+      <CreatePostDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        communityId={community._id}
+        communityName={community.name}
+      />
+
+      <AuthRequiredDialog
+        open={isAuthDialogOpen}
+        onOpenChange={setIsAuthDialogOpen}
+        description="Please log in to share a post with the community."
+      />
     </Card>
   );
 }

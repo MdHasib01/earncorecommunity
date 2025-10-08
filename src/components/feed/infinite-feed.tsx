@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { PostCard } from "./post-card";
 import { PostSkeleton } from "./post-skeleton";
@@ -30,6 +30,7 @@ export function InfiniteFeed({
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [showRefreshButton, setShowRefreshButton] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const limit = 10;
 
   const { ref, inView } = useInView({
@@ -54,6 +55,39 @@ export function InfiniteFeed({
     authentic,
   });
 
+  const postsFromResponse = useMemo(() => {
+    if (!data) return [] as Post[];
+    const docs = (data as any)?.docs;
+    if (Array.isArray(docs)) {
+      return docs as Post[];
+    }
+    const nestedData = (data as any)?.data;
+    if (Array.isArray(nestedData)) {
+      return nestedData as Post[];
+    }
+    return [] as Post[];
+  }, [data]);
+
+  const derivedHasMore = useMemo(() => {
+    if (typeof (data as any)?.hasNextPage === "boolean") {
+      return (data as any).hasNextPage as boolean;
+    }
+    const meta = (data as any)?.meta;
+    const pagination = meta?.pagination ?? meta;
+    if (pagination) {
+      if (typeof pagination.hasNextPage === "boolean") {
+        return pagination.hasNextPage as boolean;
+      }
+      if (typeof pagination.hasNext === "boolean") {
+        return pagination.hasNext as boolean;
+      }
+    }
+    if (typeof (data as any)?.nextPage === "number") {
+      return true;
+    }
+    return postsFromResponse.length > 0;
+  }, [data, postsFromResponse]);
+
   // Show refresh button every 5 minutes
   useEffect(() => {
     const interval = setInterval(() => {
@@ -69,40 +103,43 @@ export function InfiniteFeed({
     setAllPosts([]);
     setHasMore(true);
     setShowRefreshButton(false);
+    setIsLoadingMore(false);
   }, [community, sortBy, sortType, search, minQualityScore, authentic]);
 
   // Handle new data
   useEffect(() => {
-    if (data?.docs) {
-      if (page === 1) {
-        // First page or filter change
-        setAllPosts(data.docs);
-      } else {
-        // Subsequent pages - append new posts
-        setAllPosts(prev => {
-          const existingIds = new Set(prev.map(post => post._id));
-          const newPosts = data.docs.filter(post => !existingIds.has(post._id));
-          return [...prev, ...newPosts];
-        });
-      }
-      
-      // Check if there are more pages
-      setHasMore(data.hasNextPage);
+    if (!data) return;
+
+    if (page === 1) {
+      setAllPosts(postsFromResponse);
+    } else if (postsFromResponse.length > 0) {
+      setAllPosts((prev) => {
+        const existingIds = new Set(prev.map((post) => post._id));
+        const newPosts = postsFromResponse.filter(
+          (post) => !existingIds.has(post._id)
+        );
+        return [...prev, ...newPosts];
+      });
     }
-  }, [data, page]);
+
+    setHasMore(derivedHasMore);
+    setIsLoadingMore(false);
+  }, [data, postsFromResponse, page, derivedHasMore]);
 
   // Load more when in view
   useEffect(() => {
-    if (inView && !isFetching && hasMore && !isLoading) {
-      setPage(prev => prev + 1);
+    if (inView && !isFetching && hasMore && !isLoading && !isLoadingMore) {
+      setIsLoadingMore(true);
+      setPage((prev) => prev + 1);
     }
-  }, [inView, isFetching, hasMore, isLoading]);
+  }, [inView, isFetching, hasMore, isLoading, isLoadingMore]);
 
   const handleRetry = useCallback(() => {
     setPage(1);
     setAllPosts([]);
     setHasMore(true);
     refetch();
+    setIsLoadingMore(false);
   }, [refetch]);
 
   const handleRefreshFeed = useCallback(() => {
@@ -113,6 +150,7 @@ export function InfiniteFeed({
     refetch();
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsLoadingMore(false);
   }, [refetch]);
   // Initial loading state
   if (isLoading && page === 1) {
