@@ -49,12 +49,12 @@ export const feedApi = createApi({
       }) => ({
         url: "posts",
         params: {
-          "pagination[page]": cursor,
-          "pagination[limit]": limit,
-          ...(community && { "filters[community][$eq]": community }),
-          ...(platform && { "filters[platform][$eq]": platform }),
+          page: cursor,
+          limit: limit,
+          ...(community && { community: community }),
+          ...(platform && { platform: platform }),
           ...(sortBy && { sort: `${sortBy}:${sortType || "desc"}` }),
-          ...(search && { "filters[title][$containsi]": search }),
+          ...(search && { search: search }),
           ...(typeof minQualityScore === "number" && {
             "filters[qualityScore][$gte]": minQualityScore,
           }),
