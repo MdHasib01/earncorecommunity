@@ -25,14 +25,8 @@ import { SearchDialouge } from "./search-dialouge";
 import { isAbsolute } from "path";
 
 import Image from "next/image";
-//Icons Import
-import chatgpt from "../assets/icons/chatgpt.png";
-import claude from "../assets/icons/claude.png";
-import deepseek from "../assets/icons/deepseek.png";
-import gork from "../assets/icons/gork.png";
-import midjourney from "../assets/icons/midjourney.png";
-import hiringGame from "../assets/icons/chess-piece.png";
 import Link from "next/link";
+import { BookOpen, Trophy } from "lucide-react";
 import { useGetAllCommunitiesQuery } from "@/store/features/community/communityApi";
 import { useTheme } from "next-themes";
 
@@ -47,7 +41,7 @@ const data = {
         {
           title: "Master The Hiring Game",
           url: "/course/1",
-          icon: hiringGame,
+          icon: "trophy",
         },
       ],
     },
@@ -137,20 +131,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {item.items.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        {/* <SidebarMenuButton asChild isActive={item.isActive}> */}
+                    {item.items.map((subItem) => (
+                      <SidebarMenuItem key={subItem.title}>
                         <SidebarMenuButton asChild>
-                          <div>
-                            {item.icon && (
-                              <Image
-                                width={20}
-                                src={item.icon}
-                                alt="logo"
-                              ></Image>
-                            )}
-                            <Link href={item.url}>{item.title}</Link>
-                          </div>
+                          <Link href={subItem.url}>
+                            <div className="flex items-center gap-2">
+                              {subItem.icon === "trophy" && <Trophy className="w-5 h-5" />}
+                              {subItem.icon === "book" && <BookOpen className="w-5 h-5" />}
+                              {subItem.title}
+                            </div>
+                          </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}

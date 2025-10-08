@@ -9,6 +9,7 @@ import {
   useGetUserPostsQuery,
   useGetUserProfileQuery,
   useUpdateProfileMutation,
+  useDeletePostMutation,
 } from "@/store/features/feed/feedApi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostCard } from "@/components/feed/post-card";
+import { MyPostCard } from "@/components/feed/my-post-card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -293,7 +295,7 @@ export default function MyProfilePage() {
             ) : userProfile?.posts?.length ? (
               <div className="space-y-6">
                 {userProfile?.posts?.map((post: any) => (
-                  <PostCard key={post._id} post={post} />
+                  <MyPostCard key={post._id} post={post} isAuthenticated={true} />
                 ))}
               </div>
             ) : (

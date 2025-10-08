@@ -10,6 +10,15 @@ export const feedApi = createApi({
       headers.set("content-type", "application/json");
       return headers;
     },
+    paramsSerializer: (params) => {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      return searchParams.toString();
+    },
   }),
   tagTypes: ["Post", "Comment", "User", "Bookmark", "Like", "Follow"],
   endpoints: (builder) => ({
@@ -476,6 +485,17 @@ export const feedApi = createApi({
       invalidatesTags: ["Post"],
     }),
 
+    deletePost: builder.mutation<void, string>({
+      query: (postId) => ({
+        url: `posts/${postId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, postId) => [
+        { type: "Post", id: postId },
+        "Post",
+      ],
+    }),
+
     // Update profile
     updateProfile: builder.mutation<
       User,
@@ -517,5 +537,6 @@ export const {
   useDeleteCommentMutation,
   useGetUserPostsQuery,
   useCreatePostMutation,
+  useDeletePostMutation,
   useUpdateProfileMutation,
 } = feedApi;
