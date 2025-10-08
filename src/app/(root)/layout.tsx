@@ -30,24 +30,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="bg-background sticky z-50 top-0 flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
-              <div>
-                <SidebarTrigger className="-ml-1" />
-              </div>
-              <TopRightMenu />
-            </header>
+    <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="bg-background sticky z-50 top-0 flex justify-between h-16 shrink-0 items-center gap-2 border-b px-4">
+            <div>
+              <SidebarTrigger className="-ml-1" />
+            </div>
+            <TopRightMenu />
+          </header>
 
-            {children}
-          </SidebarInset>
-        </SidebarProvider>
-      </body>
-    </html>
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }
