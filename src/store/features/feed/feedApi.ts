@@ -42,15 +42,16 @@ export const feedApi = createApi({
         params: {
           "pagination[page]": cursor,
           "pagination[limit]": limit,
-          ...(community && { "filters[community]": community }),
-          ...(platform && { "filters[platform]": platform }),
-          ...(sortBy && { "sort[field]": sortBy }),
-          ...(sortType && { "sort[order]": sortType }),
-          ...(search && { "filters[search]": search }),
+          ...(community && { "filters[community][$eq]": community }),
+          ...(platform && { "filters[platform][$eq]": platform }),
+          ...(sortBy && { sort: `${sortBy}:${sortType || "desc"}` }),
+          ...(search && { "filters[title][$containsi]": search }),
           ...(typeof minQualityScore === "number" && {
-            "filters[minQualityScore]": minQualityScore,
+            "filters[qualityScore][$gte]": minQualityScore,
           }),
-          ...(authentic !== undefined && { "filters[authentic]": authentic }),
+          ...(authentic !== undefined && {
+            "filters[authentic][$eq]": authentic,
+          }),
         },
       }),
       transformResponse: (response: any) => {

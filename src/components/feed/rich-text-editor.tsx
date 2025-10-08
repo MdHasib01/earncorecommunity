@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
-import type QuillType from "quill";
+import "react-quill/dist/quill.snow.css";
+
+type ReactQuillType = typeof import("react-quill");
 
 type RichTextEditorProps = {
   value: string;
@@ -10,109 +13,68 @@ type RichTextEditorProps = {
   placeholder?: string;
 };
 
-const TOOLBAR_OPTIONS = [
-  [{ header: [1, 2, 3, false] }],
-  ["bold", "italic", "underline", "strike"],
-  [{ list: "ordered" }, { list: "bullet" }],
-  ["link", "blockquote", "code-block"],
-  [{ color: [] }, { background: [] }],
-  ["clean"],
-];
-
-const EMPTY_HTML = "<p><br></p>";
+const ReactQuill = dynamic<ReactQuillType>(
+  async () => {
+    const mod = await import("react-quill");
+    return mod;
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    ),
+  }
+);
 
 export function RichTextEditor({
   value,
   onChange,
   placeholder,
 }: RichTextEditorProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const quillRef = useRef<QuillType>();
-  const onChangeRef = useRef(onChange);
-  const [isReady, setIsReady] = useState(false);
+  const modules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "blockquote", "code-block"],
+        [{ color: [] }, { background: [] }],
+        ["clean"],
+      ],
+    }),
+    []
+  );
 
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadQuill = async () => {
-      const { default: Quill } = await import("quill");
-
-      if (!mounted || !containerRef.current) {
-        return;
-      }
-
-      const quill = new Quill(containerRef.current, {
-        theme: "snow",
-        modules: {
-          toolbar: TOOLBAR_OPTIONS,
-        },
-        placeholder,
-      });
-
-      quill.root.innerHTML = value || "";
-
-      quill.on("text-change", () => {
-        const html = quill.root.innerHTML;
-        const normalized = html === EMPTY_HTML ? "" : html;
-        onChangeRef.current(normalized);
-      });
-
-      quillRef.current = quill;
-      setIsReady(true);
-    };
-
-    void loadQuill();
-
-    return () => {
-      mounted = false;
-      quillRef.current = undefined;
-    };
-  }, []);
-
-  useEffect(() => {
-    const quill = quillRef.current;
-    if (!quill) {
-      return;
-    }
-
-    const current = quill.root.innerHTML;
-    const normalizedCurrent = current === EMPTY_HTML ? "" : current;
-    const normalizedValue = value || "";
-
-    if (normalizedCurrent === normalizedValue) {
-      return;
-    }
-
-    const selection = quill.getSelection();
-    quill.clipboard.dangerouslyPasteHTML(normalizedValue);
-
-    if (selection) {
-      quill.setSelection(selection);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    if (quillRef.current) {
-      quillRef.current.root.dataset.placeholder = placeholder ?? "";
-    }
-  }, [placeholder]);
+  const formats = useMemo(
+    () => [
+      "header",
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      "list",
+      "bullet",
+      "link",
+      "blockquote",
+      "code-block",
+      "color",
+      "background",
+    ],
+    []
+  );
 
   return (
     <div className="rich-text-editor">
-      {!isReady && (
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-40 w-full" />
-        </div>
-      )}
-      <div
-        ref={containerRef}
-        className={isReady ? undefined : "hidden"}
-        aria-hidden={!isReady}
+      <ReactQuill
+        theme="snow"
+        value={value}
+        onChange={onChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
       />
     </div>
   );
