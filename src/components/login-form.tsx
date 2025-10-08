@@ -14,10 +14,8 @@ import { appConfig } from "@/utils/config";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  useGetCurrentUserQuery,
   useLoginMutation,
 } from "@/store/features/authentication/authApi";
-import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -27,16 +25,6 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const dispatch = useDispatch();
-  const auth = useSelector((state: any) => state.auth);
-  const {
-    data: currentUser,
-    error: currentUserError,
-    isLoading: isLoadingUser,
-    refetch: refetchUser,
-  } = useGetCurrentUserQuery(undefined, {
-    skip: auth.isAuthenticated,
-  });
   const [login, { isLoading: isLoggingIn, error: loginError }] =
     useLoginMutation();
 

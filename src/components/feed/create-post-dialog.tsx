@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RichTextEditor } from "./rich-text-editor";
+import { Textarea } from "@/components/ui/textarea";
 import { useCreatePostMutation } from "@/store/features/feed/feedApi";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -108,10 +108,12 @@ export function CreatePostDialog({
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Content</label>
-            <RichTextEditor
+            <Textarea
               value={content}
-              onChange={setContent}
+              onChange={(e) => setContent(e.target.value)}
               placeholder="What would you like to share?"
+              rows={8}
+              className="resize-none"
             />
           </div>
         </div>
