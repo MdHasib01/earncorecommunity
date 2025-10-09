@@ -85,7 +85,7 @@ export function SignUpForm({
       }
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/register`,
+        `${process.env.NEXT_PUBLIC_API_URL}users/register`,
         submitFormData,
         {
           headers: {
