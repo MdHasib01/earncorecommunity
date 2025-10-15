@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import lmsReducer from "../lms/store/lms.slice";
 import { lmsApi } from "../lms/store/lms.api";
 import { feedApi } from "./features/feed/feedApi";
+import likesReducer from "./features/feed/likesSlice";
 import { communityApi } from "./features/community/communityApi";
 import authSlice from "./features/authentication/authSlice";
 import { authApi } from "./features/authentication/authApi";
@@ -11,6 +12,7 @@ export const store = configureStore({
   reducer: {
     auth: authSlice,
     lms: lmsReducer,
+    likes: likesReducer,
     [lmsApi.reducerPath]: lmsApi.reducer,
     [feedApi.reducerPath]: feedApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,

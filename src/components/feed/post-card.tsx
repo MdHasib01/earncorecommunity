@@ -28,8 +28,8 @@ import {
 } from "@/store/features/feed/feedApi";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AuthRequiredDialog } from "./auth-required-dialog";
+import { upsertLikedPost } from "@/store/features/feed/likesSlice";
 
 interface PostCardProps {
   post: Post;
@@ -46,18 +47,23 @@ export function PostCard({ post }: PostCardProps) {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isCommentsDrawerOpen, setIsCommentsDrawerOpen] = useState(false);
   const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
-  const [isLiked, setIsLiked] = useState(post.isLoved);
+  const [isLiked, setIsLiked] = useState(() => Boolean(post.isLoved));
   const [likesCount, setLikesCount] = useState(
     (post.engagementMetrics?.likes || 0) +
       (post.localEngagement?.likes || 0)
   );
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
+  const dispatch = useDispatch<AppDispatch>();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
-  const isOwnPost = currentUser?._id === post.owner._id;
+  const likedPostIds = useSelector(
+    (state: RootState) => state.likes.likedPostIds
+  );
+  const currentUserId = currentUser?._id;
+  const isOwnPost = currentUserId === post.owner._id;
 
   const [toggleLove, { isLoading: isLikeLoading }] =
     useTogglePostLikeMutation();
@@ -75,12 +81,36 @@ export function PostCard({ post }: PostCardProps) {
   // const { data: bookmarkStatus } = useCheckBookmarkStatusQuery(post._id);
 
   useEffect(() => {
-    setIsLiked(post.isLoved);
     setLikesCount(
       (post.engagementMetrics?.likes || 0) +
         (post.localEngagement?.likes || 0)
     );
-  }, [post]);
+  }, [
+    post._id,
+    post.engagementMetrics?.likes,
+    post.localEngagement?.likes,
+  ]);
+
+  useEffect(() => {
+    const likedFromStore = likedPostIds[post._id];
+
+    if (typeof likedFromStore === "boolean") {
+      setIsLiked(likedFromStore);
+      return;
+    }
+
+    const lovedByCurrentUser = post.lovedBy?.some(
+      (user) => user?._id === currentUserId
+    );
+
+    setIsLiked(Boolean(post.isLoved) || Boolean(lovedByCurrentUser));
+  }, [
+    likedPostIds,
+    post._id,
+    post.isLoved,
+    post.lovedBy,
+    currentUserId,
+  ]);
 
   const requireAuthentication = useCallback(() => {
     if (!isAuthenticated) {
@@ -98,6 +128,13 @@ export function PostCard({ post }: PostCardProps) {
       setIsLiked(result.liked);
       setLikesCount((prev) =>
         result.liked ? prev + 1 : Math.max(prev - 1, 0)
+      );
+      dispatch(
+        upsertLikedPost({
+          postId: post._id,
+          liked: result.liked,
+          post,
+        })
       );
     } catch (error) {
       console.error("Failed to toggle like:", error);

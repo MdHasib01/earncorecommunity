@@ -523,6 +523,7 @@ export const {
   useToggleCommentLikeMutation,
   useGetPostLikesQuery,
   useGetUserLikedPostsQuery,
+  useLazyGetUserLikedPostsQuery,
   useToggleBookmarkMutation,
   useGetUserBookmarksQuery,
   useGetBookmarkCollectionsQuery,

@@ -68,7 +68,7 @@ export function FeedFilters({
   const sortOptions = [
     { value: "createdAt", label: "Latest", icon: Clock },
     { value: "totalEngagement", label: "Most Popular", icon: TrendingUp },
-    { value: "qualityScore", label: "Highest Quality", icon: Star },
+    // { value: "qualityScore", label: "Highest Quality", icon: Star },
   ];
 
   const updateFilters = (newFilters: Record<string, string | undefined>) => {

@@ -83,6 +83,15 @@ export interface Post {
   lovedBy: User[];
 }
 
+export interface UserLikedPost {
+  _id: string;
+  likedBy: string;
+  post: Post;
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
 export interface Comment {
   id?: string;
   _id: string;
