@@ -2,12 +2,12 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { PostCard } from "./post-card";
-import { PostSkeleton } from "./post-skeleton";
 import { useGetFeedQuery } from "@/store/features/feed/feedApi";
 import { Loader, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Post } from "@/store/features/feed/types";
+import { PostSkeleton } from "./post-skeleton";
 
 interface InfiniteFeedProps {
   community?: string;
@@ -38,13 +38,7 @@ export function InfiniteFeed({
     rootMargin: "100px",
   });
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useGetFeedQuery({
+  const { data, isLoading, isFetching, error, refetch } = useGetFeedQuery({
     cursor: page.toString(),
     limit,
     community,
@@ -149,17 +143,21 @@ export function InfiniteFeed({
     setShowRefreshButton(false);
     refetch();
     // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setIsLoadingMore(false);
   }, [refetch]);
+
+  const isInitialFeedLoading =
+    (isLoading || isFetching) && page === 1 && allPosts.length === 0;
+
   // Initial loading state
-  if (isLoading && page === 1) {
+  if (isInitialFeedLoading) {
     return (
-      <div className="space-y-6">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <PostSkeleton key={i} />
-        ))}
-      </div>
+      <Card className="p-8 text-center">
+        <Loader className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Loading feed</h3>
+        <p className="text-muted-foreground">Feed posts will load shortly.</p>
+      </Card>
     );
   }
 
@@ -180,20 +178,22 @@ export function InfiniteFeed({
     );
   }
 
+  const noPostsFetched =
+    allPosts.length === 0 && postsFromResponse.length === 0;
+
   // Empty state
-  if (!isLoading && allPosts.length === 0) {
+  if (!isLoading && !isFetching && noPostsFetched) {
     return (
       <Card className="p-8 text-center">
         <div className="text-muted-foreground">
           <Loader className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <h3 className="text-lg font-semibold mb-2">No posts found</h3>
           <p>
-            {search 
+            {search
               ? `No posts found matching "${search}"`
               : community
               ? "This community doesn't have any posts yet"
-              : "No posts available at the moment"
-            }
+              : "No posts available at the moment"}
           </p>
         </div>
       </Card>
@@ -205,11 +205,7 @@ export function InfiniteFeed({
       {/* Refresh Button */}
       {showRefreshButton && (
         <div className="sticky top-4 z-10 flex justify-center">
-          <Button 
-            onClick={handleRefreshFeed}
-            className="shadow-lg"
-            size="sm"
-          >
+          <Button onClick={handleRefreshFeed} className="shadow-lg" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
             Load New Posts
           </Button>
