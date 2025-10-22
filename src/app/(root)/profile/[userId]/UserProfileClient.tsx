@@ -127,11 +127,11 @@ export default function UserProfileClient({ userId }: UserProfileClientProps) {
                   <div>
                     <div className="flex items-center gap-3 mb-2">
                       <h1 className="text-2xl font-bold">{user.fullName}</h1>
-                      {user.isVerified && (
+                      {/* {user.isVerified && (
                         <Badge variant="secondary" className="text-xs">
                           Verified
                         </Badge>
-                      )}
+                      )} */}
                     </div>
                     <p className="text-muted-foreground">@{user.username}</p>
                   </div>

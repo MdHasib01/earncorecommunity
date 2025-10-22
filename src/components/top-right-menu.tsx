@@ -20,7 +20,7 @@ import { useLogoutMutation } from "@/store/features/authentication/authApi";
 import { useRouter } from "next/navigation";
 const UserAvatar = ({ user, onClick }: { user: any; onClick?: () => void }) => {
   return (
-    <div 
+    <div
       className="flex items-center space-x-3 hover:bg-accent/50 rounded-lg p-2 -m-2 transition-colors duration-200 cursor-pointer"
       onClick={onClick}
     >
@@ -43,7 +43,7 @@ const UserAvatar = ({ user, onClick }: { user: any; onClick?: () => void }) => {
             </span>
           </div>
 
-          {user?.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />}
+          {/* {user?.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />} */}
         </div>
       </div>
     </div>
@@ -91,22 +91,14 @@ const TopRightMenu = () => {
       ) : (
         <DropdownMenu>
           <DropdownMenuTrigger>
-            {auth.isAuthenticated ? (
-              <UserAvatar user={auth?.user} />
-            ) : (
-              <User />
-            )}
+            {auth.isAuthenticated ? <UserAvatar user={auth?.user} /> : <User />}
           </DropdownMenuTrigger>
           {auth.isAuthenticated ? (
             <DropdownMenuContent>
               <Link href="/my-profile">
                 <DropdownMenuItem>My Profile</DropdownMenuItem>
               </Link>
-              <DropdownMenuItem
-                onClick={handleLogout}
-              >
-                Logout
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           ) : (
             <DropdownMenuContent>

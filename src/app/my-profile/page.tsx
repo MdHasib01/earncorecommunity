@@ -220,11 +220,11 @@ export default function MyProfilePage() {
                         <h1 className="text-2xl font-bold">
                           {currentUser.fullName}
                         </h1>
-                        {currentUser.isVerified && (
+                        {/* {currentUser.isVerified && (
                           <Badge variant="secondary" className="text-xs">
                             Verified
                           </Badge>
-                        )}
+                        )} */}
                       </div>
                       <p className="text-muted-foreground">
                         @{currentUser.username}
@@ -295,7 +295,11 @@ export default function MyProfilePage() {
             ) : userProfile?.posts?.length ? (
               <div className="space-y-6">
                 {userProfile?.posts?.map((post: any) => (
-                  <MyPostCard key={post._id} post={post} isAuthenticated={true} />
+                  <MyPostCard
+                    key={post._id}
+                    post={post}
+                    isAuthenticated={true}
+                  />
                 ))}
               </div>
             ) : (

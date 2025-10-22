@@ -96,8 +96,9 @@ export function SignUpForm({
       );
 
       if (response.data) {
-        toast.success("Account created successfully! Please login.");
-        router.push("/login");
+        toast.success("Email verification link sent to your email");
+        localStorage.setItem("verificationEmail", email);
+        router.push("/verify-otp");
       }
     } catch (error: any) {
       console.error("Registration error:", error);

@@ -49,8 +49,7 @@ export function PostCard({ post }: PostCardProps) {
   const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(() => Boolean(post.isLoved));
   const [likesCount, setLikesCount] = useState(
-    (post.engagementMetrics?.likes || 0) +
-      (post.localEngagement?.likes || 0)
+    (post.engagementMetrics?.likes || 0) + (post.localEngagement?.likes || 0)
   );
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
@@ -82,14 +81,9 @@ export function PostCard({ post }: PostCardProps) {
 
   useEffect(() => {
     setLikesCount(
-      (post.engagementMetrics?.likes || 0) +
-        (post.localEngagement?.likes || 0)
+      (post.engagementMetrics?.likes || 0) + (post.localEngagement?.likes || 0)
     );
-  }, [
-    post._id,
-    post.engagementMetrics?.likes,
-    post.localEngagement?.likes,
-  ]);
+  }, [post._id, post.engagementMetrics?.likes, post.localEngagement?.likes]);
 
   useEffect(() => {
     const likedFromStore = likedPostIds[post._id];
@@ -104,13 +98,7 @@ export function PostCard({ post }: PostCardProps) {
     );
 
     setIsLiked(Boolean(post.isLoved) || Boolean(lovedByCurrentUser));
-  }, [
-    likedPostIds,
-    post._id,
-    post.isLoved,
-    post.lovedBy,
-    currentUserId,
-  ]);
+  }, [likedPostIds, post._id, post.isLoved, post.lovedBy, currentUserId]);
 
   const requireAuthentication = useCallback(() => {
     if (!isAuthenticated) {
@@ -242,9 +230,9 @@ export function PostCard({ post }: PostCardProps) {
                 <span className="font-semibold text-foreground">
                   {post?.owner?.fullName}
                 </span>
-                {post?.owner?.isVerified && (
+                {/* {post?.owner?.isVerified && (
                   <BadgeCheck className="h-4 w-4 text-primary" />
-                )}
+                )} */}
               </div>
               <div className="flex flex-col gap-1 space-x-2 text-sm text-muted-foreground">
                 <span className="text-xs font-semibold">

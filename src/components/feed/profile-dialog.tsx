@@ -83,25 +83,27 @@ export function ProfileDialog({
                   <h3 className="text-lg font-bold text-foreground">
                     {user.fullName}
                   </h3>
-                  {user.isVerified && (
+                  {/* {user.isVerified && (
                     <Badge variant="secondary" className="text-xs">
                       Verified
                     </Badge>
-                  )}
+                  )} */}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   @{user.username}
                 </p>
-                <Button size="sm" className="w-full" onClick={handleViewFullProfile}>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={handleViewFullProfile}
+                >
                   View Profile
                 </Button>
               </div>
             </div>
 
             {/* Bio */}
-            {user.bio && (
-              <p className="text-foreground">{user.bio}</p>
-            )}
+            {user.bio && <p className="text-foreground">{user.bio}</p>}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 text-center">
@@ -139,7 +141,8 @@ export function ProfileDialog({
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  Joined {formatDistanceToNow(new Date(user.createdAt), {
+                  Joined{" "}
+                  {formatDistanceToNow(new Date(user.createdAt), {
                     addSuffix: true,
                   })}
                 </span>

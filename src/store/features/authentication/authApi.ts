@@ -83,7 +83,24 @@ export const authApi = createApi({
         }
       },
     }),
+    verifyOtp: builder.mutation({
+      query: (credentials) => ({
+        url: "/users/verify-otp",
+        method: "POST",
+        body: credentials,
+      }),
 
+      onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setCredentials(data));
+        } catch (error: any) {
+          dispatch(
+            setError(error.error?.data?.message || "Verification failed")
+          );
+        }
+      },
+    }),
     // Register mutation
     register: builder.mutation<{ user: User }, RegisterData>({
       query: (userData) => ({
@@ -202,4 +219,5 @@ export const {
   useChangePasswordMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
+  useVerifyOtpMutation,
 } = authApi;
