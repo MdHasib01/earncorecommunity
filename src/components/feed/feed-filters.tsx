@@ -132,29 +132,38 @@ export function FeedFilters({
       {/* Search and Quick Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search posts..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className="pl-10 pr-10"
-            />
-            {searchValue && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchValue("");
-                  updateFilters({ search: undefined });
-                }}
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
+        <form onSubmit={handleSearchSubmit} className="flex w-full">
+          <div className="flex w-full gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search posts..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="pl-10 pr-10 w-full"
+              />
+              {searchValue && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchValue("");
+                    updateFilters({ search: undefined });
+                  }}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="bg-primary flex-shrink-0 h-full"
+              size="sm"
+            >
+              Search
+            </Button>
           </div>
         </form>
 
@@ -169,7 +178,7 @@ export function FeedFilters({
               {activeFiltersCount > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center"
                 >
                   {activeFiltersCount}
                 </Badge>
