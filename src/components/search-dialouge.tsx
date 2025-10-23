@@ -28,11 +28,34 @@ import { Label } from "@/components/ui/label";
 import { CommandInput } from "./ui/command";
 import { Search } from "lucide-react";
 import { SearchForm } from "./search-form";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function SearchDialouge() {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchValue, setSearchValue] = React.useState("");
+  const updateFilters = (newFilters: Record<string, string | undefined>) => {
+    const params = new URLSearchParams(searchParams);
 
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value && value !== "") {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+
+    const basePath = `/`;
+
+    router.push(`${basePath}?${params.toString()}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateFilters({ search: searchValue });
+  };
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
@@ -45,16 +68,20 @@ export function SearchDialouge() {
         <DialogContent className="sm:max-w-[495px]">
           <div className="flex items-center gap-2 mt-2 border-b-1">
             <Search />
-            <input
-              type="text"
-              placeholder="Search or ask a question"
-              className="w-full outline-none p-2"
-            />
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search or ask a question"
+                className="w-full outline-none p-2"
+              />
+            </form>
           </div>
           <div className="flex flex-col items-center justify-center gap-2">
             <Search />
             <h2 className="text-center font-semibold text-xl">
-              Search the community
+              Search in the community
             </h2>
             <p className="text-center text-gray-500 text-sm">
               Try searching for keywords in posts, comments, events, lessons,
@@ -92,7 +119,7 @@ export function SearchDialouge() {
           <div className="flex flex-col items-center justify-center gap-2 mt-4">
             <Search />
             <h2 className="text-center font-semibold text-xl">
-              Search the community
+              Search in the community
             </h2>
             <p className="text-center text-gray-500 text-sm">
               Try searching for keywords in posts, comments, events, lessons,
