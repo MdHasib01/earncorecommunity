@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Earn Core Communityd",
+  title: "Earn Core Community",
   description: "Community for Earn Core",
 };
 
