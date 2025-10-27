@@ -83,7 +83,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <div className="container px-10 py-12 md:py-16">
+      <div className="container px-2 md:px-5 lg:px-10 py-12 md:py-16">
         <div className="max-w-3xl mx-auto text-center space-y-3 mb-12">
           <h1 className="font-playfair text-4xl md:text-5xl font-bold tracking-tight">
             Let&apos;s Connect
