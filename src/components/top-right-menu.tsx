@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, User } from "lucide-react";
+import { BadgeCheck, User, Bell } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,11 @@ import { useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useLogoutMutation } from "@/store/features/authentication/authApi";
 import { useRouter } from "next/navigation";
+import {
+  useGetNotificationsQuery,
+  useMarkAllReadMutation,
+} from "@/store/features/notifications/notificationsApi";
+import { RootState } from "@/store/store";
 const UserAvatar = ({ user, onClick }: { user: any; onClick?: () => void }) => {
   return (
     <div
@@ -52,9 +57,18 @@ const UserAvatar = ({ user, onClick }: { user: any; onClick?: () => void }) => {
 
 const TopRightMenu = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const auth = useSelector((state: any) => state.auth);
+  const auth = useSelector((state: RootState) => state.auth);
   const router = useRouter();
   const [logout] = useLogoutMutation();
+
+  const isAdmin = auth?.user?.role === "admin";
+  const { data: notifications = [], refetch } = useGetNotificationsQuery(
+    undefined,
+    {
+      skip: !auth?.isAuthenticated || !isAdmin,
+    }
+  );
+  const [markAllRead] = useMarkAllReadMutation();
 
   const handleProfileClick = () => {
     router.push("/my-profile");
@@ -73,6 +87,63 @@ const TopRightMenu = () => {
   return (
     <div className="flex items-center gap-4">
       <SearchDialouge />
+      {auth.isAuthenticated && isAdmin && (
+        <>
+          <Link href="/admin/dashboard">
+            <Button variant="outline" className="rounded-3xl">
+              Dashboard
+            </Button>
+          </Link>
+          <DropdownMenu
+            onOpenChange={async (open) => {
+              if (!open) {
+                try {
+                  await markAllRead().unwrap();
+                } catch (error) {
+                  // ignore errors
+                } finally {
+                  refetch();
+                }
+              }
+            }}
+          >
+            <DropdownMenuTrigger className="relative">
+              <Bell />
+              {notifications?.length ? (
+                <span className="absolute -top-2 -right-2 text-xs bg-primary text-primary-foreground rounded-full px-1">
+                  {notifications.length}
+                </span>
+              ) : null}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64">
+              <DropdownMenuLabel>Unread Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {notifications?.filter((n: any) => n.status === "unread")
+                .length ? (
+                notifications
+                  .filter((n: any) => n.status === "unread")
+                  .map((n: any) => (
+                    <DropdownMenuItem
+                      key={(n as any)._id || n.title}
+                      className="flex-col items-start"
+                    >
+                      <div className="text-sm font-bold">{n.username}</div>
+                      <Link href={`/post/${n?.post}`}>
+                        <div className="text-xs text-muted-foreground line-clamp-2">
+                          {n.title}
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))
+              ) : (
+                <DropdownMenuItem className="text-sm text-muted-foreground">
+                  No unread notifications
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      )}
       {isDesktop ? (
         auth.isAuthenticated ? (
           <UserAvatar user={auth?.user} onClick={handleProfileClick} />
@@ -95,6 +166,11 @@ const TopRightMenu = () => {
           </DropdownMenuTrigger>
           {auth.isAuthenticated ? (
             <DropdownMenuContent>
+              {isAdmin && (
+                <Link href="/admin/dashboard">
+                  <DropdownMenuItem>Admin Dashboard</DropdownMenuItem>
+                </Link>
+              )}
               <Link href="/my-profile">
                 <DropdownMenuItem>My Profile</DropdownMenuItem>
               </Link>

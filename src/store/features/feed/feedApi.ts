@@ -181,6 +181,26 @@ export const feedApi = createApi({
       ],
     }),
 
+    // Admin: get posts from real users
+    getRealPosts: builder.query<Post[], void>({
+      query: () => ({ url: "posts/real", method: "GET" }),
+      transformResponse: (response: any) => {
+        // Be flexible with backend response shapes
+        if (Array.isArray(response)) return response as Post[];
+        const payload = response?.data ?? response;
+        if (Array.isArray(payload)) return payload as Post[];
+        if (Array.isArray(payload?.docs)) return payload.docs as Post[];
+        return [];
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((p) => ({ type: "Post" as const, id: p._id })),
+              { type: "Post", id: "REAL_LIST" },
+            ]
+          : [{ type: "Post", id: "REAL_LIST" }],
+    }),
+
     toggleCommentLike: builder.mutation<{ liked: boolean }, string>({
       query: (commentId) => ({
         url: `comments/${commentId}/like`,
@@ -520,6 +540,7 @@ export const {
   useGetUserProfileQuery,
   useGetUserProfileByIdQuery,
   useTogglePostLikeMutation,
+  useGetRealPostsQuery,
   useToggleCommentLikeMutation,
   useGetPostLikesQuery,
   useGetUserLikedPostsQuery,

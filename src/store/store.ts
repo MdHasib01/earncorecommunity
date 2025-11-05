@@ -7,6 +7,7 @@ import { communityApi } from "./features/community/communityApi";
 import authSlice from "./features/authentication/authSlice";
 import { authApi } from "./features/authentication/authApi";
 import { profileApi } from "./features/profile/profileAPI";
+import { notificationsApi } from "./features/notifications/notificationsApi";
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     [profileApi.reducerPath]: profileApi.reducer,
     [communityApi.reducerPath]: communityApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
+    [notificationsApi.reducerPath]: notificationsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -25,7 +27,8 @@ export const store = configureStore({
       feedApi.middleware,
       profileApi.middleware,
       communityApi.middleware,
-      authApi.middleware
+      authApi.middleware,
+      notificationsApi.middleware
     ),
 });
 
