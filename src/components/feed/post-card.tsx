@@ -162,12 +162,13 @@ export function PostCard({ post }: PostCardProps) {
   };
 
   const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/post/${post._id}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: post.title,
           text: post.content.substring(0, 100) + "...",
-          url: post.sourceUrl || window.location.href,
+          url: shareUrl,
         });
       } catch (error) {
         console.error("Error sharing:", error);
@@ -175,9 +176,7 @@ export function PostCard({ post }: PostCardProps) {
     } else {
       // Fallback to clipboard
       try {
-        await navigator.clipboard.writeText(
-          post.sourceUrl || window.location.href
-        );
+        await navigator.clipboard.writeText(shareUrl);
         // You could show a toast here
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
