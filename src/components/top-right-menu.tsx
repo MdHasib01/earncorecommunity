@@ -86,7 +86,7 @@ const TopRightMenu = () => {
   };
   return (
     <div className="flex items-center gap-4">
-      <SearchDialouge />
+      {isDesktop && <SearchDialouge />}
       {auth.isAuthenticated && isAdmin && (
         <>
           <Link href="/admin/dashboard">
@@ -146,7 +146,23 @@ const TopRightMenu = () => {
       )}
       {isDesktop ? (
         auth.isAuthenticated ? (
-          <UserAvatar user={auth?.user} onClick={handleProfileClick} />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <UserAvatar user={auth?.user} onClick={handleProfileClick} />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent>
+              {isAdmin && (
+                <Link href="/admin/dashboard">
+                  <DropdownMenuItem>Admin Dashboard</DropdownMenuItem>
+                </Link>
+              )}
+              <Link href="/my-profile">
+                <DropdownMenuItem>My Profile</DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <div className="flex items-center gap-2 border-l pl-4">
             <Link href="/login">
