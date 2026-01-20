@@ -78,15 +78,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: communities = [] } = useGetAllCommunitiesQuery();
   const pathname = usePathname();
   const dispatch = useDispatch();
-  const { data: courses = [], isLoading, isFetching, isError } = useGetCoursesQuery();
-  const { currentCourse, currentLesson } = useSelector((state: RootState) => state.lms);
+  const {
+    data: courses = [],
+    isLoading,
+    isFetching,
+    isError,
+  } = useGetCoursesQuery();
+  const { currentCourse, currentLesson } = useSelector(
+    (state: RootState) => state.lms,
+  );
 
   const activeCourseId = React.useMemo(() => {
     const match = pathname.match(/^\/course\/([^/?#]+)/);
     return match?.[1] ?? null;
   }, [pathname]);
 
-  const activeCourse = currentCourse?.id === activeCourseId ? currentCourse : null;
+  const activeCourse =
+    currentCourse?.id === activeCourseId ? currentCourse : null;
 
   return (
     <Sidebar {...props}>
@@ -152,7 +160,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {data.navMain.map((item) => (
           <Collapsible
             key={item.title}
-            defaultOpen={false}
+            defaultOpen
             className="group/collapsible"
           >
             <SidebarGroup>
@@ -185,11 +193,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         </SidebarMenuItem>
                       ) : courses.length ? (
                         courses.map((c) => {
-                          const isActiveCourse = pathname.startsWith(`/course/${c._id}`);
+                          const isActiveCourse = pathname.startsWith(
+                            `/course/${c._id}`,
+                          );
 
                           return (
                             <SidebarMenuItem key={c._id}>
-                              <SidebarMenuButton asChild isActive={isActiveCourse}>
+                              <SidebarMenuButton
+                                asChild
+                                isActive={isActiveCourse}
+                              >
                                 <Link href={`/course/${c._id}`}>
                                   <div className="flex items-center gap-2">
                                     <BookOpen className="h-4 w-4" />
@@ -200,68 +213,80 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
                               {isActiveCourse && activeCourse ? (
                                 <SidebarMenuSub>
-                                  {activeCourse.modules.map((m, moduleIndex) => (
-                                    <SidebarMenuSubItem key={m.id}>
-                                      <Collapsible
-                                        open={!!m.isExpanded}
-                                        onOpenChange={() =>
-                                          dispatch(toggleModuleExpansion(m.id))
-                                        }
-                                      >
-                                        <CollapsibleTrigger asChild>
-                                          <SidebarMenuSubButton asChild>
-                                            <button className="w-full">
-                                              <div className="flex w-full items-center gap-2">
-                                                {m.isExpanded ? (
-                                                  <ChevronDown className="h-4 w-4" />
-                                                ) : (
-                                                  <ChevronRight className="h-4 w-4" />
-                                                )}
-                                                <Layers className="h-4 w-4" />
-                                                <span className="min-w-0 flex-1 truncate">
-                                                  {moduleIndex + 1}. {m.title}
-                                                </span>
-                                              </div>
-                                            </button>
-                                          </SidebarMenuSubButton>
-                                        </CollapsibleTrigger>
+                                  {activeCourse.modules.map(
+                                    (m, moduleIndex) => (
+                                      <SidebarMenuSubItem key={m.id}>
+                                        <Collapsible
+                                          open={!!m.isExpanded}
+                                          onOpenChange={() =>
+                                            dispatch(
+                                              toggleModuleExpansion(m.id),
+                                            )
+                                          }
+                                        >
+                                          <CollapsibleTrigger asChild>
+                                            <SidebarMenuSubButton asChild>
+                                              <button className="w-full">
+                                                <div className="flex w-full items-center gap-2">
+                                                  {m.isExpanded ? (
+                                                    <ChevronDown className="h-4 w-4" />
+                                                  ) : (
+                                                    <ChevronRight className="h-4 w-4" />
+                                                  )}
+                                                  <Layers className="h-4 w-4" />
+                                                  <span className="min-w-0 flex-1 truncate">
+                                                    {moduleIndex + 1}. {m.title}
+                                                  </span>
+                                                </div>
+                                              </button>
+                                            </SidebarMenuSubButton>
+                                          </CollapsibleTrigger>
 
-                                        <CollapsibleContent>
-                                          <SidebarMenuSub>
-                                            {m.lessons.map((l, lessonIndex) => (
-                                              <SidebarMenuSubItem key={l.id}>
-                                                <SidebarMenuSubButton
-                                                  asChild
-                                                  size="sm"
-                                                  isActive={currentLesson?.id === l.id}
-                                                >
-                                                  <button
-                                                    className="w-full"
-                                                    onClick={() =>
-                                                      dispatch(
-                                                        setCurrentLesson({
-                                                          lesson: l,
-                                                          module: m,
-                                                        })
-                                                      )
-                                                    }
+                                          <CollapsibleContent>
+                                            <SidebarMenuSub>
+                                              {m.lessons.map(
+                                                (l, lessonIndex) => (
+                                                  <SidebarMenuSubItem
+                                                    key={l.id}
                                                   >
-                                                    <div className="flex w-full items-center gap-2">
-                                                      <Play className="h-4 w-4" />
-                                                      <span className="min-w-0 flex-1 truncate">
-                                                        {moduleIndex + 1}.{lessonIndex + 1}{" "}
-                                                        {l.title}
-                                                      </span>
-                                                    </div>
-                                                  </button>
-                                                </SidebarMenuSubButton>
-                                              </SidebarMenuSubItem>
-                                            ))}
-                                          </SidebarMenuSub>
-                                        </CollapsibleContent>
-                                      </Collapsible>
-                                    </SidebarMenuSubItem>
-                                  ))}
+                                                    <SidebarMenuSubButton
+                                                      asChild
+                                                      size="sm"
+                                                      isActive={
+                                                        currentLesson?.id ===
+                                                        l.id
+                                                      }
+                                                    >
+                                                      <button
+                                                        className="w-full"
+                                                        onClick={() =>
+                                                          dispatch(
+                                                            setCurrentLesson({
+                                                              lesson: l,
+                                                              module: m,
+                                                            }),
+                                                          )
+                                                        }
+                                                      >
+                                                        <div className="flex w-full items-center gap-2">
+                                                          <Play className="h-4 w-4" />
+                                                          <span className="min-w-0 flex-1 truncate">
+                                                            {moduleIndex + 1}.
+                                                            {lessonIndex + 1}{" "}
+                                                            {l.title}
+                                                          </span>
+                                                        </div>
+                                                      </button>
+                                                    </SidebarMenuSubButton>
+                                                  </SidebarMenuSubItem>
+                                                ),
+                                              )}
+                                            </SidebarMenuSub>
+                                          </CollapsibleContent>
+                                        </Collapsible>
+                                      </SidebarMenuSubItem>
+                                    ),
+                                  )}
                                 </SidebarMenuSub>
                               ) : null}
                             </SidebarMenuItem>
