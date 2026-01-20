@@ -1,305 +1,381 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Course, UpdateProgressPayload } from "../types/lms.types";
+import { getCookie } from "@/utils/cookies";
+import { Course } from "../types/lms.types";
 
-// Mock data for demonstration
-const mockCourseData: Course = {
-  id: "1",
-  title: "Mastering The Hiring Game",
-  description: "Mastering The Hiring Game",
-  currentProgress: 15,
-  totalLessons: 24,
-  completedLessons: 4,
-  modules: [
-    {
-      id: "module-1",
-      title: "Entrepreneurship Fundamentals",
-      isCompleted: false,
-      isExpanded: true,
-      totalDuration: 195,
-      lessons: [
-        {
-          id: "lesson-1",
-          title: "Introduction to Entrepreneurship",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 30,
-          isCompleted: true,
-        },
-        {
-          id: "lesson-2",
-          title: "Identifying Market Opportunities",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 45,
-          isCompleted: true,
-        },
-        {
-          id: "lesson-3",
-          title: "Validating Your Business Idea",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 40,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-4",
-          title: "Building Your MVP",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 50,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-5",
-          title: "Customer Development Process",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 30,
-          isCompleted: false,
-        },
-      ],
-    },
-    {
-      id: "module-2",
-      title: "Business Planning & Strategy",
-      isCompleted: false,
-      isExpanded: false,
-      totalDuration: 220,
-      lessons: [
-        {
-          id: "lesson-6",
-          title: "Writing a Business Plan",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 55,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-7",
-          title: "Market Research & Analysis",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 45,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-8",
-          title: "Competitive Analysis",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 35,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-9",
-          title: "Financial Projections",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 50,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-10",
-          title: "Risk Assessment & Mitigation",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 35,
-          isCompleted: false,
-        },
-      ],
-    },
-    {
-      id: "module-3",
-      title: "Digital Marketing for Startups",
-      isCompleted: false,
-      isExpanded: false,
-      totalDuration: 280,
-      lessons: [
-        {
-          id: "lesson-11",
-          title: "Building Your Brand Identity",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 40,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-12",
-          title: "Social Media Marketing Strategy",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 50,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-13",
-          title: "Content Marketing & SEO",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 45,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-14",
-          title: "Email Marketing Campaigns",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 35,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-15",
-          title: "Paid Advertising & PPC",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 40,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-16",
-          title: "Analytics & Performance Tracking",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 30,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-17",
-          title: "Conversion Rate Optimization",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 40,
-          isCompleted: false,
-        },
-      ],
-    },
-    {
-      id: "module-4",
-      title: "Funding & Investment",
-      isCompleted: false,
-      isExpanded: false,
-      totalDuration: 200,
-      lessons: [
-        {
-          id: "lesson-18",
-          title: "Understanding Funding Options",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 35,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-19",
-          title: "Bootstrapping Your Business",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 30,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-20",
-          title: "Angel Investors & Venture Capital",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 50,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-21",
-          title: "Preparing Your Pitch Deck",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 45,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-22",
-          title: "Due Diligence Process",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 40,
-          isCompleted: false,
-        },
-      ],
-    },
-    {
-      id: "module-5",
-      title: "Operations & Growth",
-      isCompleted: false,
-      isExpanded: false,
-      totalDuration: 240,
-      lessons: [
-        {
-          id: "lesson-23",
-          title: "Building Your Team",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 45,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-24",
-          title: "Legal Structure & Compliance",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 40,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-25",
-          title: "Financial Management & Bookkeeping",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 50,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-26",
-          title: "Scaling Your Business",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 55,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-27",
-          title: "Customer Success & Retention",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 35,
-          isCompleted: false,
-        },
-        {
-          id: "lesson-28",
-          title: "Exit Strategies",
-          videoUrl: "https://www.youtube.com/embed/Wbp96roLw9Y",
-          duration: 15,
-          isCompleted: false,
-        },
-      ],
-    },
-  ],
+type ApiResponse<T> = {
+  statusCode: number;
+  data: T;
+  message: string;
+  success: boolean;
+};
+
+type CourseSummaryDto = {
+  _id: string;
+  title: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type CourseWithStatsDto = {
+  _id: string;
+  title: string;
+  description?: string;
+  totalDuration?: number;
+  lessonsCount?: number;
+};
+
+type ModuleSummaryDto = {
+  _id: string;
+  title: string;
+  description?: string;
+  course: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type ModuleWithStatsDto = ModuleSummaryDto & {
+  totalDuration?: number;
+  lessonsCount?: number;
+};
+
+type ContentDto = {
+  _id: string;
+  title: string;
+  description?: string;
+  duration: number;
+  youtubeVideoLink: string;
+  thumbnail?: string;
+  module: string;
+};
+
+type DeleteResultDto = { deleted: true };
+
+const extractData = <T>(result: unknown): T => {
+  const res = result as { data?: unknown };
+  const payload = res?.data as ApiResponse<T> | T | undefined;
+  if (payload && typeof payload === "object" && "data" in (payload as any)) {
+    return (payload as ApiResponse<T>).data;
+  }
+  return payload as T;
+};
+
+const paramsSerializer = (params: Record<string, unknown>) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, String(value));
+    }
+  });
+  return searchParams.toString();
 };
 
 export const lmsApi = createApi({
   reducerPath: "lmsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "/api/lms",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL,
+    credentials: "include",
+    prepareHeaders: (headers) => {
+      headers.set("content-type", "application/json");
+      const token = getCookie("accessToken");
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      return headers;
+    },
+    paramsSerializer,
   }),
-  tagTypes: ["Course", "Progress"],
+  tagTypes: ["Course", "Courses", "Module", "Modules", "Content", "Contents"],
   endpoints: (builder) => ({
     getCourse: builder.query<Course, string>({
-      queryFn: async (courseId) => {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      queryFn: async (courseId, api, extraOptions, baseQuery) => {
+        const courseResult = await baseQuery({
+          url: `courses/${courseId}`,
+          method: "GET",
+        });
+        if (courseResult.error) return { error: courseResult.error as any };
 
-        // Return mock data for now
-        return { data: { ...mockCourseData, id: courseId } };
+        const courseDto = extractData<CourseWithStatsDto>(courseResult);
+
+        const modulesResult = await baseQuery({
+          url: "modules",
+          method: "GET",
+          params: { course: courseId },
+        });
+        if (modulesResult.error) return { error: modulesResult.error as any };
+
+        const moduleDtos = extractData<ModuleSummaryDto[]>(modulesResult) ?? [];
+
+        const modules = await Promise.all(
+          moduleDtos.map(async (m, index) => {
+            const contentsResult = await baseQuery({
+              url: "contents",
+              method: "GET",
+              params: { module: m._id },
+            });
+            if (contentsResult.error) {
+              return {
+                id: m._id,
+                title: m.title,
+                description: m.description,
+                isCompleted: false,
+                isExpanded: index === 0,
+                totalDuration: 0,
+                lessons: [],
+              };
+            }
+
+            const contents = extractData<ContentDto[]>(contentsResult) ?? [];
+            const lessons = contents.map((c) => ({
+              id: c._id,
+              title: c.title,
+              description: c.description,
+              videoUrl: c.youtubeVideoLink,
+              duration: c.duration,
+              thumbnail: c.thumbnail,
+              isCompleted: false,
+            }));
+
+            const totalDuration = lessons.reduce(
+              (sum, l) => sum + (l.duration || 0),
+              0
+            );
+
+            return {
+              id: m._id,
+              title: m.title,
+              description: m.description,
+              isCompleted: false,
+              isExpanded: index === 0,
+              totalDuration,
+              lessons,
+            };
+          })
+        );
+
+        const totalLessons =
+          courseDto.lessonsCount ?? modules.flatMap((m) => m.lessons).length;
+        const completedLessons = 0;
+        const currentProgress = 0;
+
+        return {
+          data: {
+            id: courseDto._id,
+            title: courseDto.title,
+            description: courseDto.description,
+            modules,
+            currentProgress,
+            totalLessons,
+            completedLessons,
+            totalDuration: courseDto.totalDuration,
+          },
+        };
       },
       providesTags: (result, error, courseId) => [
         { type: "Course", id: courseId },
       ],
     }),
 
-    updateProgress: builder.mutation<void, UpdateProgressPayload>({
-      queryFn: async (payload) => {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 200));
+    getCourses: builder.query<CourseSummaryDto[], void>({
+      query: () => ({ url: "courses", method: "GET" }),
+      transformResponse: (response: ApiResponse<CourseSummaryDto[]>) =>
+        response?.data ?? [],
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((c) => ({ type: "Course" as const, id: c._id })),
+              { type: "Courses" as const, id: "LIST" },
+            ]
+          : [{ type: "Courses" as const, id: "LIST" }],
+    }),
 
-        // In a real app, this would make an API call to update progress
-        console.log("Updating progress:", payload);
+    getCourseDetails: builder.query<CourseWithStatsDto, string>({
+      query: (id) => ({ url: `courses/${id}`, method: "GET" }),
+      transformResponse: (response: ApiResponse<CourseWithStatsDto>) =>
+        response.data,
+      providesTags: (result, error, id) => [{ type: "Course", id }],
+    }),
 
-        return { data: undefined };
-      },
-      invalidatesTags: (result, error, { courseId }) => [
-        { type: "Course", id: courseId },
-        { type: "Progress", id: courseId },
+    createCourse: builder.mutation<
+      CourseSummaryDto,
+      { title: string; description?: string }
+    >({
+      query: (body) => ({ url: "courses", method: "POST", body }),
+      transformResponse: (response: ApiResponse<CourseSummaryDto>) =>
+        response.data,
+      invalidatesTags: [{ type: "Courses", id: "LIST" }],
+    }),
+
+    updateCourse: builder.mutation<
+      CourseSummaryDto,
+      { id: string; title?: string; description?: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `courses/${id}`,
+        method: "PUT",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<CourseSummaryDto>) =>
+        response.data,
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Course", id },
+        { type: "Courses", id: "LIST" },
       ],
     }),
 
-    getCourseProgress: builder.query<number, string>({
-      queryFn: async (courseId) => {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 300));
+    deleteCourse: builder.mutation<DeleteResultDto, string>({
+      query: (id) => ({ url: `courses/${id}`, method: "DELETE" }),
+      transformResponse: (response: ApiResponse<DeleteResultDto>) =>
+        response.data,
+      invalidatesTags: (result, error, id) => [
+        { type: "Course", id },
+        { type: "Courses", id: "LIST" },
+      ],
+    }),
 
-        // Return mock progress data
-        return { data: mockCourseData.currentProgress };
-      },
-      providesTags: (result, error, courseId) => [
-        { type: "Progress", id: courseId },
+    getModules: builder.query<ModuleSummaryDto[], { course?: string } | void>({
+      query: (arg) => ({
+        url: "modules",
+        method: "GET",
+        params: arg && "course" in arg ? { course: arg.course } : undefined,
+      }),
+      transformResponse: (response: ApiResponse<ModuleSummaryDto[]>) =>
+        response?.data ?? [],
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((m) => ({ type: "Module" as const, id: m._id })),
+              { type: "Modules" as const, id: "LIST" },
+            ]
+          : [{ type: "Modules" as const, id: "LIST" }],
+    }),
+
+    getModuleDetails: builder.query<ModuleWithStatsDto, string>({
+      query: (id) => ({ url: `modules/${id}`, method: "GET" }),
+      transformResponse: (response: ApiResponse<ModuleWithStatsDto>) =>
+        response.data,
+      providesTags: (result, error, id) => [{ type: "Module", id }],
+    }),
+
+    createModule: builder.mutation<
+      ModuleSummaryDto,
+      { title: string; description?: string; courseId: string }
+    >({
+      query: ({ courseId, ...body }) => ({
+        url: "modules",
+        method: "POST",
+        body: { ...body, courseId },
+      }),
+      transformResponse: (response: ApiResponse<ModuleSummaryDto>) =>
+        response.data,
+      invalidatesTags: [{ type: "Modules", id: "LIST" }],
+    }),
+
+    updateModule: builder.mutation<
+      ModuleSummaryDto,
+      { id: string; title?: string; description?: string; courseId?: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `modules/${id}`,
+        method: "PUT",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<ModuleSummaryDto>) =>
+        response.data,
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Module", id },
+        { type: "Modules", id: "LIST" },
+      ],
+    }),
+
+    deleteModule: builder.mutation<DeleteResultDto, string>({
+      query: (id) => ({ url: `modules/${id}`, method: "DELETE" }),
+      transformResponse: (response: ApiResponse<DeleteResultDto>) =>
+        response.data,
+      invalidatesTags: (result, error, id) => [
+        { type: "Module", id },
+        { type: "Modules", id: "LIST" },
+      ],
+    }),
+
+    getContents: builder.query<ContentDto[], { module?: string } | void>({
+      query: (arg) => ({
+        url: "contents",
+        method: "GET",
+        params: arg && "module" in arg ? { module: arg.module } : undefined,
+      }),
+      transformResponse: (response: ApiResponse<ContentDto[]>) =>
+        response?.data ?? [],
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((c) => ({ type: "Content" as const, id: c._id })),
+              { type: "Contents" as const, id: "LIST" },
+            ]
+          : [{ type: "Contents" as const, id: "LIST" }],
+    }),
+
+    getContentDetails: builder.query<ContentDto, string>({
+      query: (id) => ({ url: `contents/${id}`, method: "GET" }),
+      transformResponse: (response: ApiResponse<ContentDto>) => response.data,
+      providesTags: (result, error, id) => [{ type: "Content", id }],
+    }),
+
+    createContent: builder.mutation<
+      ContentDto,
+      {
+        title: string;
+        description?: string;
+        duration: number;
+        youtubeVideoLink: string;
+        moduleId: string;
+      }
+    >({
+      query: ({ moduleId, ...body }) => ({
+        url: "contents",
+        method: "POST",
+        body: { ...body, moduleId },
+      }),
+      transformResponse: (response: ApiResponse<ContentDto>) => response.data,
+      invalidatesTags: [{ type: "Contents", id: "LIST" }],
+    }),
+
+    updateContent: builder.mutation<
+      ContentDto,
+      {
+        id: string;
+        title?: string;
+        description?: string;
+        duration?: number;
+        youtubeVideoLink?: string;
+        moduleId?: string;
+      }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `contents/${id}`,
+        method: "PUT",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<ContentDto>) => response.data,
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Content", id },
+        { type: "Contents", id: "LIST" },
+      ],
+    }),
+
+    deleteContent: builder.mutation<DeleteResultDto, string>({
+      query: (id) => ({ url: `contents/${id}`, method: "DELETE" }),
+      transformResponse: (response: ApiResponse<DeleteResultDto>) =>
+        response.data,
+      invalidatesTags: (result, error, id) => [
+        { type: "Content", id },
+        { type: "Contents", id: "LIST" },
+      ],
+    }),
+
+    markWatched: builder.mutation<void, { courseContentId: string }>({
+      query: (body) => ({ url: "watched", method: "POST", body }),
+      transformResponse: () => undefined,
+      invalidatesTags: (result, error, body) => [
+        { type: "Content", id: body.courseContentId },
       ],
     }),
   }),
@@ -307,6 +383,20 @@ export const lmsApi = createApi({
 
 export const {
   useGetCourseQuery,
-  useUpdateProgressMutation,
-  useGetCourseProgressQuery,
+  useGetCoursesQuery,
+  useGetCourseDetailsQuery,
+  useCreateCourseMutation,
+  useUpdateCourseMutation,
+  useDeleteCourseMutation,
+  useGetModulesQuery,
+  useGetModuleDetailsQuery,
+  useCreateModuleMutation,
+  useUpdateModuleMutation,
+  useDeleteModuleMutation,
+  useGetContentsQuery,
+  useGetContentDetailsQuery,
+  useCreateContentMutation,
+  useUpdateContentMutation,
+  useDeleteContentMutation,
+  useMarkWatchedMutation,
 } = lmsApi;

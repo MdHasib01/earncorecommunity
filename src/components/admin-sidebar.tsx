@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, LayoutDashboard } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  Home,
+  Layers,
+  LayoutDashboard,
+  Video,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -36,6 +43,42 @@ export function AdminSidebar({
               <Link href="/admin/dashboard">
                 <LayoutDashboard className="h-4 w-4" />
                 <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith("/admin/courses")}
+            >
+              <Link href="/admin/courses">
+                <BookOpen className="h-4 w-4" />
+                <span>Courses</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith("/admin/modules")}
+            >
+              <Link href="/admin/modules">
+                <Layers className="h-4 w-4" />
+                <span>Modules</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith("/admin/lessons")}
+            >
+              <Link href="/admin/lessons">
+                <Video className="h-4 w-4" />
+                <span>Lessons</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

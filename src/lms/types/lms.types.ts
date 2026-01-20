@@ -6,11 +6,13 @@ export interface Course {
   currentProgress: number;
   totalLessons: number;
   completedLessons: number;
+  totalDuration?: number;
 }
 
 export interface Module {
   id: string;
   title: string;
+  description?: string;
   lessons: Lesson[];
   isCompleted: boolean;
   isExpanded?: boolean;
@@ -20,8 +22,10 @@ export interface Module {
 export interface Lesson {
   id: string;
   title: string;
+  description?: string;
   videoUrl: string;
   duration: number;
+  thumbnail?: string;
   isCompleted: boolean;
   isActive?: boolean;
 }

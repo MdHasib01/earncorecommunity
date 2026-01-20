@@ -1,6 +1,5 @@
 "use client";
 
-import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,10 +12,8 @@ import {
   Instagram,
   Youtube,
   Facebook,
-  MessageCircle,
   Users,
   Briefcase,
-  Mic,
   CheckCircle,
   AlertCircle,
   Loader2,
@@ -70,7 +67,7 @@ export default function ContactPage() {
       });
       form.reset();
       router.push("/thank-you-for-contact");
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: "error",
         message:

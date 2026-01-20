@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useGetCourseQuery } from "../../../../lms/store/lms.api";
 import {

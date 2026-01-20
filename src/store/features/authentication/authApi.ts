@@ -6,7 +6,6 @@ import type {
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
 import { setCredentials, logout, setError } from "./authSlice";
-import type { RootState } from "../../store";
 import {
   AuthResponse,
   LoginCredentials,
@@ -175,7 +174,7 @@ export const authApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setCredentials(data));
-        } catch (error) {
+        } catch {
           dispatch(logout());
         }
       },

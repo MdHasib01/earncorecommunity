@@ -10,52 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Play, Clock, BookOpen, Users, Star } from "lucide-react";
+import { Play, BookOpen } from "lucide-react";
+import { useGetCoursesQuery } from "@/lms/store/lms.api";
 
 export default function Home() {
-  const courses = [
-    {
-      id: "1",
-      title: "Mastering The Hiring Game",
-      description: "Mastering The Hiring Game",
-      thumbnail:
-        "https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800",
-      duration: "12 hours",
-      lessons: 24,
-      students: 1200,
-      rating: 4.8,
-      progress: 15,
-      instructor: "John Smith",
-    },
-    {
-      id: "2",
-      title: "Advanced TypeScript Mastery",
-      description: "Deep dive into TypeScript features and best practices",
-      thumbnail:
-        "https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg?auto=compress&cs=tinysrgb&w=800",
-      duration: "8 hours",
-      lessons: 16,
-      students: 890,
-      rating: 4.9,
-      progress: 0,
-      instructor: "Sarah Johnson",
-    },
-    {
-      id: "3",
-      title: "Learn how to snatch top talent, avoid hiring mistakes, and more!",
-      description:
-        "Learn how to snatch top talent, avoid hiring mistakes, and more!",
-      thumbnail:
-        "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=800",
-      duration: "15 hours",
-      lessons: 30,
-      students: 2100,
-      rating: 4.7,
-      progress: 65,
-      instructor: "Mike Chen",
-    },
-  ];
+  const {
+    data: courses = [],
+    isLoading,
+    isFetching,
+    isError,
+  } = useGetCoursesQuery();
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,12 +53,19 @@ export default function Home() {
               Access world-class courses, track your progress, and master new
               skills at your own pace.
             </p>
-            <Link href="/course/1">
-              <Button size="lg" className="mr-4">
+            {courses[0]?._id ? (
+              <Link href={`/course/${courses[0]._id}`}>
+                <Button size="lg" className="mr-4">
+                  <Play className="w-5 h-5 mr-2" />
+                  Continue Learning
+                </Button>
+              </Link>
+            ) : (
+              <Button size="lg" className="mr-4" disabled>
                 <Play className="w-5 h-5 mr-2" />
                 Continue Learning
               </Button>
-            </Link>
+            )}
             <Button variant="outline" size="lg">
               Explore Courses
             </Button>
@@ -108,85 +79,46 @@ export default function Home() {
             <Button variant="outline">View All</Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <Card
-                key={course.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="aspect-video bg-muted relative">
-                  <img
-                    src={course.thumbnail}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <Link href={`/course/${course.id}`}>
-                      <Button size="lg">
-                        <Play className="w-5 h-5 mr-2" />
-                        {course.progress > 0 ? "Continue" : "Start"} Course
+          {isLoading || isFetching ? (
+            <div className="text-muted-foreground">Loading courses...</div>
+          ) : isError ? (
+            <div className="text-red-600">Failed to load courses.</div>
+          ) : courses.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map((course) => (
+                <Card
+                  key={course._id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div className="aspect-video bg-gradient-to-r from-primary/15 to-secondary/15 flex items-center justify-center">
+                    <div className="text-center px-6">
+                      <div className="text-lg font-semibold line-clamp-2">
+                        {course.title}
+                      </div>
+                    </div>
+                  </div>
+
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{course.title}</CardTitle>
+                    <CardDescription className="line-clamp-3">
+                      {course.description || "No description"}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-3">
+                    <Link href={`/course/${course._id}`} className="block">
+                      <Button className="w-full">
+                        <Play className="w-4 h-4 mr-2" />
+                        Open Course
                       </Button>
                     </Link>
-                  </div>
-                </div>
-
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{course.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {course.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {course.progress > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{course.progress}%</span>
-                      </div>
-                      <Progress value={course.progress} className="h-2" />
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-4">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {course.duration}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        {course.lessons} lessons
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{course.rating}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      by {course.instructor}
-                    </span>
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {course.students.toLocaleString()} students
-                    </span>
-                  </div>
-
-                  <Link href={`/course/${course.id}`} className="block">
-                    <Button className="w-full">
-                      <Play className="w-4 h-4 mr-2" />
-                      {course.progress > 0
-                        ? "Continue Learning"
-                        : "Start Course"}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-muted-foreground">No courses found.</div>
+          )}
         </section>
       </main>
     </div>

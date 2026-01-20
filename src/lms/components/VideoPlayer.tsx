@@ -1,14 +1,21 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { updateProgress } from '../store/lms.slice';
-import { useUpdateProgressMutation } from '../store/lms.api';
-import { Lesson, Module } from '../types/lms.types';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
+import { updateProgress } from "../store/lms.slice";
+import { useMarkWatchedMutation } from "../store/lms.api";
+import { Lesson, Module } from "../types/lms.types";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  RotateCcw,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface VideoPlayerProps {
   lesson: Lesson | null;
@@ -16,9 +23,13 @@ interface VideoPlayerProps {
   courseId: string;
 }
 
-export default function VideoPlayer({ lesson, module, courseId }: VideoPlayerProps) {
+export default function VideoPlayer({
+  lesson,
+  module,
+  courseId,
+}: VideoPlayerProps) {
   const dispatch = useDispatch();
-  const [updateProgressMutation] = useUpdateProgressMutation();
+  const [markWatched] = useMarkWatchedMutation();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,21 +46,18 @@ export default function VideoPlayer({ lesson, module, courseId }: VideoPlayerPro
     if (!lesson || !module) return;
 
     try {
-      dispatch(updateProgress({
-        courseId,
-        moduleId: module.id,
-        lessonId: lesson.id,
-        isCompleted: true,
-      }));
+      dispatch(
+        updateProgress({
+          courseId,
+          moduleId: module.id,
+          lessonId: lesson.id,
+          isCompleted: true,
+        })
+      );
 
-      await updateProgressMutation({
-        courseId,
-        moduleId: module.id,
-        lessonId: lesson.id,
-        isCompleted: true,
-      });
+      await markWatched({ courseContentId: lesson.id });
     } catch (error) {
-      console.error('Failed to update progress:', error);
+      console.error("Failed to update progress:", error);
     }
   };
 
@@ -63,7 +71,8 @@ export default function VideoPlayer({ lesson, module, courseId }: VideoPlayerPro
   };
 
   const getYouTubeVideoId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
   };
@@ -109,7 +118,7 @@ export default function VideoPlayer({ lesson, module, courseId }: VideoPlayerPro
               <Skeleton className="w-full h-full" />
             </div>
           )}
-          
+
           {videoId ? (
             <iframe
               ref={iframeRef}
@@ -140,7 +149,7 @@ export default function VideoPlayer({ lesson, module, courseId }: VideoPlayerPro
                 Replay
               </Button>
               {!lesson.isCompleted && (
-                <Button 
+                <Button
                   onClick={markLessonComplete}
                   size="sm"
                   className="bg-green-600 hover:bg-green-700"
@@ -161,9 +170,11 @@ export default function VideoPlayer({ lesson, module, courseId }: VideoPlayerPro
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-2">About this lesson</h3>
         <p className="text-muted-foreground leading-relaxed">
-          In this lesson, you'll learn about {lesson.title.toLowerCase()}. This comprehensive guide will walk you through
-          the concepts step by step, providing practical examples and best practices. By the end of this lesson,
-          you'll have a solid understanding of the topic and be ready to apply these concepts in your own projects.
+          In this lesson, you&apos;ll learn about {lesson.title.toLowerCase()}.
+          This comprehensive guide will walk you through the concepts step by
+          step, providing practical examples and best practices. By the end of
+          this lesson, you&apos;ll have a solid understanding of the topic and
+          be ready to apply these concepts in your own projects.
         </p>
       </Card>
     </div>

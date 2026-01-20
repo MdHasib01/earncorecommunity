@@ -180,7 +180,6 @@ export default function PostPageClient({ postId }: { postId: string }) {
         </div>
         {post.image && (
           <div className="px-6 pt-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={post.image}
               alt="Post image"
@@ -316,7 +315,6 @@ export default function PostPageClient({ postId }: { postId: string }) {
                   <div className="bg-card rounded-lg border border-border hover:border-accent transition-colors p-4 h-full">
                     <div className="flex items-start gap-3">
                       {p.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={p.image}
                           alt="thumb"
