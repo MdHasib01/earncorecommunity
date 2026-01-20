@@ -22,6 +22,7 @@ import {
   Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { RootState } from '@/store/store';
 
 interface ModuleSidebarProps {
   course: Course;
@@ -29,8 +30,10 @@ interface ModuleSidebarProps {
   className?: string;
 }
 
-export default function ModuleSidebar({ course, currentLesson, className }: ModuleSidebarProps) {
+export default function ModuleSidebar({ course: courseProp, currentLesson, className }: ModuleSidebarProps) {
   const dispatch = useDispatch();
+  const currentCourse = useSelector((state: RootState) => state.lms.currentCourse);
+  const course = currentCourse?.id === courseProp.id ? currentCourse : courseProp;
 
   const handleLessonSelect = (lesson: Lesson, module: Module) => {
     dispatch(setCurrentLesson({ lesson, module }));
