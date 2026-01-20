@@ -83,7 +83,15 @@ export const lmsApi = createApi({
     },
     paramsSerializer,
   }),
-  tagTypes: ["Course", "Courses", "Module", "Modules", "Content", "Contents"],
+  tagTypes: [
+    "Course",
+    "Courses",
+    "Module",
+    "Modules",
+    "Content",
+    "Contents",
+    "Watched",
+  ],
   endpoints: (builder) => ({
     getCourse: builder.query<Course, string>({
       queryFn: async (courseId, api, extraOptions, baseQuery) => {
@@ -376,7 +384,16 @@ export const lmsApi = createApi({
       transformResponse: () => undefined,
       invalidatesTags: (result, error, body) => [
         { type: "Content", id: body.courseContentId },
+        { type: "Watched", id: "LIST" },
       ],
+    }),
+
+    getWatchedContentIds: builder.query<string[], void>({
+      query: () => ({ url: "watched", method: "GET" }),
+      transformResponse: (
+        response: ApiResponse<{ courseContentIds: string[] }>
+      ) => response?.data?.courseContentIds ?? [],
+      providesTags: [{ type: "Watched", id: "LIST" }],
     }),
   }),
 });
@@ -399,4 +416,6 @@ export const {
   useUpdateContentMutation,
   useDeleteContentMutation,
   useMarkWatchedMutation,
+  useGetWatchedContentIdsQuery,
+  useLazyGetWatchedContentIdsQuery,
 } = lmsApi;

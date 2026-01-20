@@ -11,8 +11,77 @@ const initialState: LMSState = {
   currentCourse: null,
   currentLesson: null,
   currentModule: null,
+  watchedContentIds: [],
   isLoading: false,
   error: null,
+};
+
+const applyWatchedToCourse = (course: Course, watchedContentIds: string[]) => {
+  const watched = new Set(watchedContentIds);
+  const modules = course.modules.map((m) => {
+    const lessons = m.lessons.map((l) => ({
+      ...l,
+      isCompleted: watched.has(l.id),
+    }));
+
+    return {
+      ...m,
+      lessons,
+      isCompleted: lessons.every((l) => l.isCompleted),
+    };
+  });
+
+  const totalLessons = modules.flatMap((m) => m.lessons).length;
+  const completedLessons = modules
+    .flatMap((m) => m.lessons)
+    .filter((l) => l.isCompleted).length;
+
+  const currentProgress =
+    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+  return {
+    ...course,
+    modules,
+    totalLessons,
+    completedLessons,
+    currentProgress,
+  };
+};
+
+const syncCurrentPointers = (state: LMSState) => {
+  if (!state.currentCourse) return;
+  if (!state.currentLesson) return;
+
+  for (const m of state.currentCourse.modules) {
+    const lesson = m.lessons.find((l) => l.id === state.currentLesson?.id);
+    if (lesson) {
+      state.currentLesson = lesson;
+      state.currentModule = m;
+      return;
+    }
+  }
+};
+
+const ensureDefaultLesson = (state: LMSState) => {
+  if (!state.currentCourse) return;
+  if (state.currentLesson) return;
+
+  const flat = state.currentCourse.modules.flatMap((m) =>
+    m.lessons.map((l) => ({ module: m, lesson: l })),
+  );
+
+  const firstIncomplete = flat.find(({ lesson }) => !lesson.isCompleted);
+  if (firstIncomplete) {
+    state.currentLesson = firstIncomplete.lesson;
+    state.currentModule = firstIncomplete.module;
+    return;
+  }
+
+  const last = flat.at(-1);
+  if (last) {
+    state.currentLesson = last.lesson;
+    state.currentModule = last.module;
+  }
 };
 
 const lmsSlice = createSlice({
@@ -20,30 +89,45 @@ const lmsSlice = createSlice({
   initialState,
   reducers: {
     setCourse: (state, action: PayloadAction<Course>) => {
-      state.currentCourse = action.payload;
-      // Set first incomplete lesson as current if no lesson is active
-      if (!state.currentLesson) {
-        const firstIncompleteLesson = action.payload.modules
-          .flatMap((module) => module.lessons)
-          .find((lesson) => !lesson.isCompleted);
-
-        if (firstIncompleteLesson) {
-          state.currentLesson = firstIncompleteLesson;
-          state.currentModule =
-            action.payload.modules.find((module) =>
-              module.lessons.some(
-                (lesson) => lesson.id === firstIncompleteLesson.id
-              )
-            ) || null;
-        }
-      }
+      const courseWithWatched = applyWatchedToCourse(
+        action.payload,
+        state.watchedContentIds,
+      );
+      state.currentCourse = courseWithWatched;
+      syncCurrentPointers(state);
+      ensureDefaultLesson(state);
     },
     setCurrentLesson: (
       state,
-      action: PayloadAction<{ lesson: Lesson; module: Module }>
+      action: PayloadAction<{ lesson: Lesson; module: Module }>,
     ) => {
       state.currentLesson = action.payload.lesson;
       state.currentModule = action.payload.module;
+    },
+    setWatchedContentIds: (state, action: PayloadAction<string[]>) => {
+      state.watchedContentIds = action.payload;
+      if (state.currentCourse) {
+        state.currentCourse = applyWatchedToCourse(
+          state.currentCourse,
+          state.watchedContentIds,
+        );
+        syncCurrentPointers(state);
+        ensureDefaultLesson(state);
+      }
+    },
+    markWatchedContentId: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      if (!state.watchedContentIds.includes(id)) {
+        state.watchedContentIds.push(id);
+      }
+      if (state.currentCourse) {
+        state.currentCourse = applyWatchedToCourse(
+          state.currentCourse,
+          state.watchedContentIds,
+        );
+        syncCurrentPointers(state);
+        ensureDefaultLesson(state);
+      }
     },
     updateProgress: (state, action: PayloadAction<UpdateProgressPayload>) => {
       if (!state.currentCourse) return;
@@ -52,7 +136,7 @@ const lmsSlice = createSlice({
 
       // Update lesson completion status
       const courseModule = state.currentCourse.modules.find(
-        (m) => m.id === moduleId
+        (m) => m.id === moduleId,
       );
       if (courseModule) {
         const lesson = courseModule.lessons.find((l) => l.id === lessonId);
@@ -61,19 +145,19 @@ const lmsSlice = createSlice({
 
           // Update module completion status
           courseModule.isCompleted = courseModule.lessons.every(
-            (l) => l.isCompleted
+            (l) => l.isCompleted,
           );
 
           // Update course progress
           const totalLessons = state.currentCourse.modules.flatMap(
-            (m) => m.lessons
+            (m) => m.lessons,
           ).length;
           const completedLessons = state.currentCourse.modules
             .flatMap((m) => m.lessons)
             .filter((l) => l.isCompleted).length;
 
           state.currentCourse.currentProgress = Math.round(
-            (completedLessons / totalLessons) * 100
+            (completedLessons / totalLessons) * 100,
           );
           state.currentCourse.completedLessons = completedLessons;
           state.currentCourse.totalLessons = totalLessons;
@@ -84,7 +168,7 @@ const lmsSlice = createSlice({
       if (!state.currentCourse) return;
 
       const courseModule = state.currentCourse.modules.find(
-        (m) => m.id === action.payload
+        (m) => m.id === action.payload,
       );
       if (courseModule) {
         courseModule.isExpanded = !courseModule.isExpanded;
@@ -102,6 +186,8 @@ const lmsSlice = createSlice({
 export const {
   setCourse,
   setCurrentLesson,
+  setWatchedContentIds,
+  markWatchedContentId,
   updateProgress,
   toggleModuleExpansion,
   setLoading,

@@ -2,8 +2,11 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { updateProgress } from "../store/lms.slice";
-import { useMarkWatchedMutation } from "../store/lms.api";
+import { setWatchedContentIds, updateProgress } from "../store/lms.slice";
+import {
+  useLazyGetWatchedContentIdsQuery,
+  useMarkWatchedMutation,
+} from "../store/lms.api";
 import { Lesson, Module } from "../types/lms.types";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +26,8 @@ interface VideoPlayerProps {
   courseId: string;
 }
 
+const WATCHED_STORAGE_KEY = "watchedCourseContentIds";
+
 export default function VideoPlayer({
   lesson,
   module,
@@ -30,6 +35,7 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const dispatch = useDispatch();
   const [markWatched] = useMarkWatchedMutation();
+  const [fetchWatched] = useLazyGetWatchedContentIdsQuery();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,10 +58,15 @@ export default function VideoPlayer({
           moduleId: module.id,
           lessonId: lesson.id,
           isCompleted: true,
-        })
+        }),
       );
 
-      await markWatched({ courseContentId: lesson.id });
+      await markWatched({ courseContentId: lesson.id }).unwrap();
+      const watchedIds = await fetchWatched().unwrap();
+      dispatch(setWatchedContentIds(watchedIds));
+      try {
+        localStorage.setItem(WATCHED_STORAGE_KEY, JSON.stringify(watchedIds));
+      } catch {}
     } catch (error) {
       console.error("Failed to update progress:", error);
     }

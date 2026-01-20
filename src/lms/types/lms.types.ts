@@ -34,6 +34,7 @@ export interface LMSState {
   currentCourse: Course | null;
   currentLesson: Lesson | null;
   currentModule: Module | null;
+  watchedContentIds: string[];
   isLoading: boolean;
   error: string | null;
 }

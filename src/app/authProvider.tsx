@@ -7,8 +7,11 @@ import { usePathname } from "next/navigation";
 import { useGetCurrentUserQuery } from "../store/features/authentication/authApi";
 import { setUser, clearUser } from "../store/features/authentication/authSlice";
 import { getCookie } from "@/utils/cookies";
+import { useGetWatchedContentIdsQuery } from "@/lms/store/lms.api";
+import { setWatchedContentIds } from "@/lms/store/lms.slice";
 
 const AUTH_FREE_ROUTES = new Set(["/login", "/signup"]);
+const WATCHED_STORAGE_KEY = "watchedCourseContentIds";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -36,6 +39,34 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // Only run on the client to avoid SSR/client HTML mismatches
       skip: shouldSkip,
     });
+
+  useEffect(() => {
+    if (!isMounted) return;
+    try {
+      const stored = localStorage.getItem(WATCHED_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as unknown;
+        if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string")) {
+          dispatch(setWatchedContentIds(parsed));
+        }
+      }
+    } catch {}
+  }, [isMounted, dispatch]);
+
+  const shouldSkipWatched = shouldSkip || !user;
+  const { data: watchedIds } = useGetWatchedContentIdsQuery(undefined, {
+    skip: shouldSkipWatched,
+    refetchOnMountOrArgChange: true,
+  });
+
+  useEffect(() => {
+    if (shouldSkipWatched) return;
+    if (!watchedIds) return;
+    dispatch(setWatchedContentIds(watchedIds));
+    try {
+      localStorage.setItem(WATCHED_STORAGE_KEY, JSON.stringify(watchedIds));
+    } catch {}
+  }, [watchedIds, shouldSkipWatched, dispatch]);
 
   useEffect(() => {
     if (user) {
